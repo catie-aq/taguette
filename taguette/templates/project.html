@@ -315,6 +315,7 @@
         <div class="container">
           <input type="text" class="form-group" id="tag-add-path" name="tag-add-path" placeholder="{% trans "tag change form placeholder" %}Name{% endtrans %}" required />
           <textarea class="form-control" id="tag-add-description" name="tag-add-description" placeholder="{% trans "tag change form placeholder" %}Description{% endtrans %}"></textarea>
+          <small class="form-text text-muted mt-2">{% trans %}Tags starting with <strong>@</strong> (e.g. <code>@todo</code>) are treated as temporary — their highlights appear in grey instead of yellow.{% endtrans %}</small>
         </div>
       </div>
       <div class="modal-footer">
