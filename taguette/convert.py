@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import bleach
 import bs4
 import chardet
@@ -180,7 +181,18 @@ else:
 # Something to HTML
 
 
-def get_html_body(body):
+def _mime_for_image(path):
+    ext = os.path.splitext(path)[1].lower()
+    return {
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.svg': 'image/svg+xml',
+        '.webp': 'image/webp',
+    }.get(ext, 'image/png')
+
+
+def get_html_body(body, output_dir=None):
     # Use beautifulsoup to remove head, script, style elements
     # (bleach can do that, but would keep the text inside them)
     soup = bs4.BeautifulSoup(body, 'html5lib')
@@ -189,7 +201,18 @@ def get_html_body(body):
             e.extract()
     # Update 'src' URLs
     for e in soup.find_all('img'):
-        e.attrs['src'] = '/static/missing.png'
+        src = e.attrs.get('src', '')
+        if output_dir and src and not src.startswith(('http://', 'https://', 'data:')):
+            img_path = os.path.join(output_dir, src)
+            if os.path.isfile(img_path):
+                mime = _mime_for_image(img_path)
+                with open(img_path, 'rb') as f:
+                    b64 = base64.b64encode(f.read()).decode('ascii')
+                e.attrs['src'] = 'data:{};base64,{}'.format(mime, b64)
+            else:
+                e.attrs['src'] = '/static/missing.png'
+        else:
+            e.attrs['src'] = '/static/missing.png'
     # Update 'href' URLs
     for e in soup.find_all('a'):
         if 'href' not in e.attrs:
@@ -221,7 +244,7 @@ def get_html_body(body):
             'table', 'thead', 'tbody', 'tr', 'th', 'td',  # tables
             'colgroup', 'col',  # columns
         },
-        attributes={'a': {'href', 'title'}, 'img': {'src'}},
+        attributes={'a': {'href', 'title'}, 'img': {'src', 'alt'}},
         strip=True,
     )
 
@@ -250,7 +273,8 @@ def is_html_safe(text):
     soup = bs4.BeautifulSoup(text, 'html5lib')
     # Check 'src' URLs
     for e in soup.find_all('img'):
-        if e.attrs.get('src') != '/static/missing.png':
+        src = e.attrs.get('src', '')
+        if src != '/static/missing.png' and not src.startswith('data:image/'):
             return False
 
     # Use bleach to sanitize the content
@@ -305,8 +329,6 @@ async def calibre_to_html(input_filename, temp_dir, config):
             cmd.append('--formatting-type=plain')
             await run_calibre(cmd)
         else:
-            if ext == '.pdf':
-                cmd.append('--no-images')
             cmd_heuristics = cmd + ['--enable-heuristics']
             try:
                 await run_calibre(cmd_heuristics)
@@ -426,8 +448,7 @@ async def calibre_to_html(input_filename, temp_dir, config):
             )
             raise ConversionError("Output file is too long")
         with open(output_filename, 'rb') as fp:
-            output.append(get_html_body(fp.read()))
-    # TODO: Store media files
+            output.append(get_html_body(fp.read(), output_dir=output_dir))
 
     # Assemble output
     return '\n'.join(output)
