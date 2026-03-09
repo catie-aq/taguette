@@ -434,7 +434,7 @@ function splitAtPos(pos, after) {
 }
 
 // Highlight a described selection
-function highlightSelection(saved, id, clickedCallback, title) {
+function highlightSelection(saved, id, clickedCallback, title, extraClass) {
   console.log("Highlighting", saved);
   if(saved === null) {
     return;
@@ -451,7 +451,7 @@ function highlightSelection(saved, id, clickedCallback, title) {
      && node.textContent
      && !node.textContent.match(onlyWhitespace)) {
       var span = document.createElement('a');
-      span.className = 'highlight highlight-' + id;
+      span.className = 'highlight highlight-' + id + (extraClass ? ' ' + extraClass : '');
       span.setAttribute('data-highlight-id', '' + id);
       span.setAttribute('title', title);
       span.addEventListener('click', clickedCallback);
@@ -1202,9 +1202,10 @@ function setHighlight(highlight) {
   highlights[id] = highlight;
   var tag_names = highlight.tags.map(function(id) { return tags[id].path; });
   sortByKey(tag_names, function(path) { return path; });
+  var is_temporary = tag_names.every(function(name) { return name.startsWith('@'); });
   tag_names = tag_names.join(", ");
   try {
-    highlightSelection([highlight.start_offset, highlight.end_offset], id, editHighlight, tag_names);
+    highlightSelection([highlight.start_offset, highlight.end_offset], id, editHighlight, tag_names, is_temporary ? 'highlight-temporary' : null);
     console.log("Highlight set:", highlight);
   } catch(error) {
     console.error(

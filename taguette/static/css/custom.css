@@ -297,6 +297,10 @@ a.dropdown-item:hover {
   color: black;
 }
 
+#document-view .highlight.highlight-temporary {
+  background-color: #d0d0d0;
+}
+
 #hlinfo {
   display: none;
   position: absolute;
