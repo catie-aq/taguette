@@ -61,3 +61,8 @@ desktop.ini
 
 # Vagrant
 .vagrant
+
+# Local deployment secrets and config
+secrets/
+.env
+config/config.py

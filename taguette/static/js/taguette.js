@@ -1287,6 +1287,7 @@ function createHighlight(selection) {
   document.getElementById('highlight-add-id').value = '';
   document.getElementById('highlight-add-start').value = selection[0];
   document.getElementById('highlight-add-end').value = selection[1];
+  document.getElementById('highlight-add-context').value = '';
   highlightModalReset();
   $(highlight_add_modal).modal().drags({handle: '.modal-header'});
   document.getElementById('highlight-search').focus();
@@ -1307,6 +1308,7 @@ function editHighlight() {
   document.getElementById('highlight-add-id').value = id;
   document.getElementById('highlight-add-start').value = highlights[id].start_offset;
   document.getElementById('highlight-add-end').value = highlights[id].end_offset;
+  document.getElementById('highlight-add-context').value = highlights[id].context || '';
   var hl_tags = highlights['' + id].tags;
   for(var i = 0; i < hl_tags.length; ++i) {
     document.getElementById('highlight-add-tags-' + hl_tags[i]).checked = true;
@@ -1331,6 +1333,7 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
       hl_tags.push(id);
     }
   }
+  var context = document.getElementById('highlight-add-context').value.trim();
   var req;
   if(highlight_id) {
     console.log("Posting update for highlight " + highlight_id);
@@ -1338,7 +1341,8 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
       '/api/project/' + project_id + '/document/' + current_document + '/highlight/' + highlight_id,
       {start_offset: selection[0],
        end_offset: selection[1],
-       tags: hl_tags}
+       tags: hl_tags,
+       context: context}
     );
   } else {
     console.log("Posting new highlight");
@@ -1346,7 +1350,8 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
       '/api/project/' + project_id + '/document/' + current_document + '/highlight/new',
       {start_offset: selection[0],
        end_offset: selection[1],
-       tags: hl_tags}
+       tags: hl_tags,
+       context: context}
     );
   }
   showSpinner();
@@ -1703,6 +1708,13 @@ function loadTag(tag_path, page) {
         taglink.textContent = tag_names[j];
         linkTag(taglink, taglink.textContent);
         elem.appendChild(taglink);
+      }
+
+      if(hl.context) {
+        var ctx = document.createElement('div');
+        ctx.className = 'highlight-context';
+        ctx.textContent = hl.context;
+        elem.appendChild(ctx);
       }
 
       document_contents.appendChild(elem);

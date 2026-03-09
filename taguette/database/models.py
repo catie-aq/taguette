@@ -439,7 +439,7 @@ class Command(Base):
     @command_fields(
         columns=['project_id', 'document_id'],
         payload_fields=[
-            'highlight_id', 'start_offset', 'end_offset', 'tags',
+            'highlight_id', 'start_offset', 'end_offset', 'tags', 'context',
         ],
     )
     def highlight_add(cls, user_login, document, highlight, tags):
@@ -452,7 +452,8 @@ class Command(Base):
                      'highlight_id': highlight.id,
                      'start_offset': highlight.start_offset,
                      'end_offset': highlight.end_offset,
-                     'tags': tags},
+                     'tags': tags,
+                     'context': highlight.context},
         )
 
     @classmethod
@@ -601,6 +602,7 @@ class Highlight(Base):
     start_offset = Column(Integer, nullable=False)
     end_offset = Column(Integer, nullable=False)
     snippet = Column(Text, nullable=False)
+    context = Column(Text, nullable=True)
     tags = relationship('Tag', secondary='highlight_tags',
                         back_populates='highlights')
 

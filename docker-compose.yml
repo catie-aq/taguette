@@ -1,0 +1,51 @@
+services:
+  taguette:
+    build: .
+    command: server /config/config.py
+    env_file: .env
+    volumes:
+      - ./config/config.py:/config/config.py:ro
+      # Dev only: bind-mount source code for live editing
+      # Uncomment the next line to use your local code instead of the built image
+      #- ./taguette:/usr/src/app/taguette
+    ports:
+      # Bound to localhost only — not exposed publicly.
+      # Cloudflare Tunnel connects to this, or use SSH port-forward to test.
+      - "127.0.0.1:7465:7465"
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: taguette
+      POSTGRES_USER: taguette
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taguette"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - internal
+
+volumes:
+  pgdata:
+
+networks:
+  internal:
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt

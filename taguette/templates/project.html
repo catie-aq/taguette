@@ -286,6 +286,10 @@
             <li class="special-item-button"><a href="javascript:createTag()">{% trans %}Create a tag{% endtrans %}</a></li>
           </ul>
         </div>
+        <div class="form-group mt-2">
+          <label for="highlight-add-context">{% trans %}Contexte{% endtrans %}</label>
+          <textarea id="highlight-add-context" class="form-control" rows="3" placeholder="{% trans %}Ajoutez un contexte à cette annotation...{% endtrans %}"></textarea>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-primary">{% trans %}Save & Close{% endtrans %}</button>

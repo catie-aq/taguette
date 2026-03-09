@@ -195,7 +195,8 @@ class Document(BaseHandler):
                 {'id': hl.id,
                  'start_offset': hl.start_offset,
                  'end_offset': hl.end_offset,
-                 'tags': [t.id for t in hl.tags]}
+                 'tags': [t.id for t in hl.tags],
+                 'context': hl.context}
                 for hl in highlights
             ],
         })
@@ -483,7 +484,8 @@ class HighlightAdd(BaseHandler):
         hl = database.Highlight(document=document,
                                 start_offset=start,
                                 end_offset=end,
-                                snippet=snippet)
+                                snippet=snippet,
+                                context=obj.get('context') or None)
         self.db.add(hl)
         self.db.flush()  # Need to flush to get hl.id
 
@@ -530,6 +532,8 @@ class HighlightUpdate(BaseHandler):
                 hl.start_offset = obj['start_offset']
             if 'end_offset' in obj:
                 hl.end_offset = obj['end_offset']
+            if 'context' in obj:
+                hl.context = obj['context'] or None
             if 'tags' in obj:
                 # Obtain old tags from database
                 old_tags = set(
@@ -691,6 +695,7 @@ class Highlights(BaseHandler):
                     'content': hl.snippet,
                     'tags': [t.id for t in hl.tags],
                     'text_direction': direction.name,
+                    'context': hl.context,
                 }
                 for hl, direction in highlights
             ],
