@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.10 AS build
+FROM python:3.10 AS build
 
 # Install Poetry
 RUN curl -sSL https://install.python-poetry.org | python3 - && /root/.local/bin/poetry config virtualenvs.create false && \

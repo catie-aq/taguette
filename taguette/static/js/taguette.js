@@ -693,12 +693,38 @@ document.getElementById('document-add-form').addEventListener('submit', function
 
 var document_change_modal = document.getElementById('document-change-modal');
 
+function updateDocumentTagsList(doc_id) {
+  var container = document.getElementById('document-change-tags');
+  while(container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+  var doc_tag_ids = (documents['' + doc_id] && documents['' + doc_id].tags) || [];
+  var entries = Object.entries(tags);
+  sortByKey(entries, function(e) { return e[1].path; });
+  for(var i = 0; i < entries.length; ++i) {
+    var tag = entries[i][1];
+    var elem = document.createElement('li');
+    elem.className = 'tag-name form-check';
+    var checked = doc_tag_ids.indexOf(tag.id) > -1 ? ' checked' : '';
+    elem.innerHTML =
+      '<input type="checkbox" class="form-check-input" value="' + tag.id + '" name="document-change-tags" id="document-change-tags-' + tag.id + '"' + checked + ' />' +
+      '<label for="document-change-tags-' + tag.id + '" class="form-check-label">' + escapeHtml(tag.path) + '</label>';
+    container.appendChild(elem);
+  }
+  if(entries.length === 0) {
+    var elem = document.createElement('li');
+    elem.textContent = gettext("no tags");
+    container.appendChild(elem);
+  }
+}
+
 function editDocument(doc_id) {
   document.getElementById('document-change-form').reset();
   document.getElementById('document-change-id').value = '' + doc_id;
   document.getElementById('document-change-name').value = '' + documents['' + doc_id].name;
   document.getElementById('document-change-description').value = '' + documents['' + doc_id].description;
   document.getElementById('document-change-form').elements['document-change-direction'].value = documents['' + doc_id].text_direction;
+  updateDocumentTagsList(doc_id);
   $(document_change_modal).modal();
 }
 
@@ -706,10 +732,16 @@ document.getElementById('document-change-form').addEventListener('submit', funct
   e.preventDefault();
   console.log("Changing document...");
 
+  var doc_tag_checkboxes = document.getElementById('document-change-tags').querySelectorAll('input[name="document-change-tags"]:checked');
+  var doc_tags = [];
+  for(var i = 0; i < doc_tag_checkboxes.length; ++i) {
+    doc_tags.push(parseInt(doc_tag_checkboxes[i].value, 10));
+  }
   var update = {
     name: document.getElementById('document-change-name').value,
     description: document.getElementById('document-change-description').value,
-    text_direction: document.getElementById('document-change-form').elements['document-change-direction'].value
+    text_direction: document.getElementById('document-change-form').elements['document-change-direction'].value,
+    tags: doc_tags
   };
   if(!update.name || update.name.length == 0) {
     alert(gettext("Document name cannot be empty"));
@@ -1001,6 +1033,7 @@ highlightSearch.addEventListener('keypress', function(e) {
 
 function highlightModalReset() {
   document.getElementById('highlight-add-form').reset();
+  document.getElementById('highlight-add-id').removeAttribute('data-document-id');
   updateModalTagsList();
 }
 
@@ -1318,6 +1351,24 @@ function editHighlight() {
   document.getElementById('highlight-search').focus();
 }
 
+function editHighlightFromTagView() {
+  highlightModalReset();
+  var id = this.getAttribute('data-highlight-id');
+  var doc_id = this.getAttribute('data-document-id');
+  document.getElementById('highlight-add-id').value = id;
+  document.getElementById('highlight-add-start').value = highlights[id].start_offset;
+  document.getElementById('highlight-add-end').value = highlights[id].end_offset;
+  document.getElementById('highlight-add-context').value = highlights[id].context || '';
+  var hl_tags = highlights['' + id].tags;
+  for(var i = 0; i < hl_tags.length; ++i) {
+    document.getElementById('highlight-add-tags-' + hl_tags[i]).checked = true;
+  }
+  // Store doc_id so the submit handler can use it
+  document.getElementById('highlight-add-id').setAttribute('data-document-id', doc_id);
+  $(highlight_add_modal).modal().drags({handle: '.modal-header'});
+  document.getElementById('highlight-search').focus();
+}
+
 // Save highlight button
 document.getElementById('highlight-add-form').addEventListener('submit', function(e) {
   e.preventDefault();
@@ -1335,11 +1386,12 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
     }
   }
   var context = document.getElementById('highlight-add-context').value.trim();
+  var doc_id = current_document || document.getElementById('highlight-add-id').getAttribute('data-document-id');
   var req;
   if(highlight_id) {
     console.log("Posting update for highlight " + highlight_id);
     req = postJSON(
-      '/api/project/' + project_id + '/document/' + current_document + '/highlight/' + highlight_id,
+      '/api/project/' + project_id + '/document/' + doc_id + '/highlight/' + highlight_id,
       {start_offset: selection[0],
        end_offset: selection[1],
        tags: hl_tags,
@@ -1348,7 +1400,7 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
   } else {
     console.log("Posting new highlight");
     req = postJSON(
-      '/api/project/' + project_id + '/document/' + current_document + '/highlight/new',
+      '/api/project/' + project_id + '/document/' + doc_id + '/highlight/new',
       {start_offset: selection[0],
        end_offset: selection[1],
        tags: hl_tags,
@@ -1360,6 +1412,9 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
     console.log("Highlight posted");
     $(highlight_add_modal).modal('hide');
     highlightModalReset();
+    if(current_tag !== null) {
+      loadTag(current_tag);
+    }
   })
   .catch(function(error) {
     console.error("Failed to create highlight:", error);
@@ -1372,14 +1427,18 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
 document.getElementById('highlight-delete').addEventListener('click', function() {
   var highlight_id = document.getElementById('highlight-add-id').value;
   if(highlight_id) {
+    var del_doc_id = current_document || document.getElementById('highlight-add-id').getAttribute('data-document-id');
     highlight_id = parseInt(highlight_id);
     console.log("Posting highlight " + highlight_id + " deletion");
     deleteURL(
-      '/api/project/' + project_id + '/document/' + current_document + '/highlight/' + highlight_id
+      '/api/project/' + project_id + '/document/' + del_doc_id + '/highlight/' + highlight_id
     )
     .then(function() {
       $(highlight_add_modal).modal('hide');
       highlightModalReset();
+      if(current_tag !== null) {
+        loadTag(current_tag);
+      }
     })
     .catch(function(error) {
       console.error("Failed to delete highlight:", error);
@@ -1678,6 +1737,7 @@ function loadTag(tag_path, page) {
     highlights = {};
     for(var i = 0; i < result.highlights.length; ++i) {
       var hl = result.highlights[i];
+      highlights['' + hl.id] = hl;
       var content = document.createElement('div');
       if(hl.text_direction === 'RIGHT_TO_LEFT') {
         content.style.direction = 'rtl';
@@ -1691,12 +1751,30 @@ function loadTag(tag_path, page) {
       elem.appendChild(content);
       elem.appendChild(document.createTextNode(' '));
 
+      var editbtn = document.createElement('button');
+      editbtn.className = 'btn btn-sm btn-outline-secondary highlight-entry-edit';
+      editbtn.textContent = gettext("Add tag");
+      editbtn.setAttribute('data-highlight-id', hl.id);
+      editbtn.setAttribute('data-document-id', hl.document_id);
+      editbtn.addEventListener('click', editHighlightFromTagView);
+      elem.appendChild(editbtn);
+
       var doclink = document.createElement('a');
       doclink.className = 'badge badge-light';
       doclink.textContent = documents['' + hl.document_id].name;
       linkDocument(doclink, hl.document_id);
       elem.appendChild(doclink);
       elem.appendChild(document.createTextNode(' '));
+
+      var doc_tags = (documents['' + hl.document_id].tags || []);
+      for(var k = 0; k < doc_tags.length; ++k) {
+        var dtag = document.createElement('a');
+        dtag.className = 'badge badge-secondary';
+        dtag.textContent = tags['' + doc_tags[k]].path;
+        linkTag(dtag, dtag.textContent);
+        elem.appendChild(dtag);
+        elem.appendChild(document.createTextNode(' '));
+      }
 
       var tag_names = hl.tags.map(function(tag) { return tags['' + tag].path; });
       tag_names.sort();
@@ -1919,7 +1997,8 @@ function longPollForEvents() {
           id: event.document_id,
           name: event.document_name,
           description: event.description,
-          text_direction: event.text_direction
+          text_direction: event.text_direction,
+          tags: event.document_tags || []
         });
       } else if(event.type === 'document_delete') {
         removeDocument(event.document_id);

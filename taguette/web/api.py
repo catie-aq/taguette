@@ -191,6 +191,7 @@ class Document(BaseHandler):
         ).all()
         return self.send_json({
             'text_direction': document.text_direction.name,
+            'tags': [t.id for t in document.tags],
             'highlights': [
                 {'id': hl.id,
                  'start_offset': hl.start_offset,
@@ -226,6 +227,17 @@ class Document(BaseHandler):
                             "Invalid text direction",
                         )
                     document.text_direction = direction
+                if 'tags' in obj:
+                    tag_ids = obj['tags']
+                    document.tags = (
+                        self.db.query(database.Tag)
+                        .filter(
+                            database.Tag.id.in_(tag_ids),
+                            database.Tag.project_id == document.project_id,
+                        )
+                        .all()
+                    )
+                self.db.flush()
                 cmd = database.Command.document_add(
                     self.current_user,
                     document,
@@ -693,6 +705,8 @@ class Highlights(BaseHandler):
                     'id': hl.id,
                     'document_id': hl.document_id,
                     'content': hl.snippet,
+                    'start_offset': hl.start_offset,
+                    'end_offset': hl.end_offset,
                     'tags': [t.id for t in hl.tags],
                     'text_direction': direction.name,
                     'context': hl.context,

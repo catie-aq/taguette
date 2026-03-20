@@ -322,6 +322,7 @@ class Document(Base):
     ))
     highlights = relationship('Highlight', cascade='all,delete-orphan',
                               passive_deletes=True)
+    tags = relationship('Tag', secondary='document_tags', back_populates='documents')
 
     def __repr__(self):
         return '<%s.%s %r %r project_id=%r>' % (
@@ -406,10 +407,13 @@ class Command(Base):
     @classmethod
     @command_fields(
         columns=['project_id', 'document_id'],
-        payload_fields=['document_name', 'description', 'text_direction'],
+        payload_fields=['document_name', 'description', 'text_direction',
+                        'document_tags'],
     )
-    def document_add(cls, user_login, document):
+    def document_add(cls, user_login, document, document_tag_ids=None):
         assert isinstance(document.id, int)
+        if document_tag_ids is None:
+            document_tag_ids = [t.id for t in document.tags]
         return cls(
             user_login=user_login,
             project=document.project,
@@ -417,7 +421,8 @@ class Command(Base):
             payload={'type': 'document_add',  # keep in sync above
                      'document_name': document.name,
                      'description': document.description,
-                     'text_direction': document.text_direction.name},
+                     'text_direction': document.text_direction.name,
+                     'document_tags': document_tag_ids},
         )
 
     @classmethod
@@ -636,6 +641,10 @@ class Tag(Base):
         'Highlight', secondary='highlight_tags',
         back_populates='tags',
     )
+    documents = relationship(
+        'Document', secondary='document_tags',
+        back_populates='tags',
+    )
 
     def __repr__(self):
         return '<%s.%s %r %r project_id=%r>' % (
@@ -651,6 +660,15 @@ highlight_tags = Table(
     'highlight_tags',
     Base.metadata,
     Column('highlight_id', ForeignKey('highlights.id', ondelete='CASCADE'),
+           primary_key=True, index=True),
+    Column('tag_id', ForeignKey('tags.id', ondelete='CASCADE'),
+           primary_key=True, index=True),
+)
+
+document_tags = Table(
+    'document_tags',
+    Base.metadata,
+    Column('document_id', ForeignKey('documents.id', ondelete='CASCADE'),
            primary_key=True, index=True),
     Column('tag_id', ForeignKey('tags.id', ondelete='CASCADE'),
            primary_key=True, index=True),

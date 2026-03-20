@@ -132,6 +132,10 @@ msgstr ""
 msgid "No highlights with this tag yet."
 msgstr ""
 
+#: taguette/static/js/taguette.js:1724
+msgid "Add tag"
+msgstr ""
+
 #: taguette/static/js/taguette.js:1799
 msgid "Error loading tag highlights!"
 msgstr ""

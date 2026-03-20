@@ -136,6 +136,10 @@ msgstr "Impossible de charger le document !"
 msgid "No highlights with this tag yet."
 msgstr "Aucune marque avec ce tag."
 
+#: taguette/static/js/taguette.js:1724
+msgid "Add tag"
+msgstr "Ajouter marque"
+
 #: taguette/static/js/taguette.js:1799
 msgid "Error loading tag highlights!"
 msgstr "Impossible de charger les marques du tag !"

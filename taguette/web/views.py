@@ -727,7 +727,8 @@ class Project(BaseHandler):
         documents_json = html_safe_json_dumps({
             str(doc.id): {'id': doc.id, 'name': doc.name,
                           'description': doc.description,
-                          'text_direction': doc.text_direction.name}
+                          'text_direction': doc.text_direction.name,
+                          'tags': [t.id for t in doc.tags]}
             for doc in project.documents
         })
         tags_json = html_safe_json_dumps({

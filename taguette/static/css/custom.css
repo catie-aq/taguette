@@ -347,6 +347,11 @@ a.dropdown-item:hover {
   padding: 1rem 0.6rem 1rem 0.6rem;
 }
 
+.highlight-entry-edit {
+  float: right;
+  margin-left: 0.5rem;
+}
+
 .highlight-context {
   margin-top: 0.5rem;
   padding: 0.4rem 0.6rem;
