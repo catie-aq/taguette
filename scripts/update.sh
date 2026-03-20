@@ -61,9 +61,10 @@ ok "Image built"
 # 4. Run DB migration (before restarting the app)
 # ---------------------------------------------------------------------------
 step "Running database migration"
-run "docker compose run --rm \
-    -e SECRET_KEY=\$(grep SECRET_KEY .env | cut -d= -f2- | tr -d '\"' | tr -d \"'\") \
-    taguette migrate /config/config.py 2>&1 | tail -5 || true"
+run "PG_PASS=\$(cat secrets/postgres_password.txt) && \
+    docker compose run --rm taguette \
+    --database=postgresql://taguette:\${PG_PASS}@postgres/taguette \
+    migrate 2>&1 | tail -5"
 ok "Migration done (or already up to date)"
 
 # ---------------------------------------------------------------------------
