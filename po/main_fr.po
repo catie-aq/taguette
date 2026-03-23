@@ -1185,3 +1185,11 @@ msgstr "Merci d'entrer un nouveau mot de passe ci-dessous :"
 msgctxt "form submit button"
 msgid "Set new password"
 msgstr "Changer le mot de passe"
+
+#: taguette/templates/project.html:131
+msgid "Filter by tags"
+msgstr "Filtrer par tags"
+
+#: taguette/templates/project.html:132
+msgid "Select tags to filter..."
+msgstr "Sélectionner les tags à filtrer..."

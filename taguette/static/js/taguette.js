@@ -1276,6 +1276,205 @@ function removeHighlight(id) {
   }
 }
 
+/*
+ * Highlight filtering
+ */
+
+var selectedFilters = {};  // Track which tags are selected for filtering
+
+// Tom Select instance for filter
+var tom_select_filter = null;
+
+// Update the filter tags list in the right panel
+function updateFilterTagsList() {
+  var filter_select = document.getElementById('filter-tags-select');
+  if(!filter_select) return;
+  
+  // Get all unique tag IDs from current highlights AND all defined tags
+  var tag_ids = new Set();
+  
+  // Add tags from highlights
+  var hl_entries = Object.entries(highlights);
+  for(var i = 0; i < hl_entries.length; ++i) {
+    var hl = hl_entries[i][1];
+    for(var j = 0; j < hl.tags.length; ++j) {
+      tag_ids.add(hl.tags[j]);
+    }
+  }
+  
+  // Add all tags that exist in the project
+  var tag_entries = Object.entries(tags);
+  for(var i = 0; i < tag_entries.length; ++i) {
+    tag_ids.add(parseInt(tag_entries[i][0], 10));
+  }
+  
+  // Only show filter if there are tags
+  var filter_container = document.getElementById('highlights-filter');
+  if(tag_ids.size === 0) {
+    if(filter_container) {
+      filter_container.style.display = 'none';
+    }
+    return;
+  }
+  
+  if(filter_container) {
+    filter_container.style.display = '';
+  }
+  
+  // Sort tag IDs by path for consistent ordering
+  var sorted_tag_ids = Array.from(tag_ids).sort(function(a, b) {
+    return tags[a].path.localeCompare(tags[b].path);
+  });
+  
+  // Store currently selected values
+  var previousSelections = tom_select_filter ? tom_select_filter.getValue() : [];
+  
+  // Clear and rebuild options
+  filter_select.innerHTML = '';
+  
+  // Add options for each tag
+  for(var i = 0; i < sorted_tag_ids.length; ++i) {
+    var tag_id = sorted_tag_ids[i];
+    var tag = tags[tag_id];
+    
+    var option = document.createElement('option');
+    option.value = tag_id;
+    var label = tag.path;
+    if(tag.is_document_tag) {
+      label += ' (doc)';
+    }
+    option.textContent = label;
+    
+    // Restore previous selections
+    if(previousSelections.indexOf(tag_id) !== -1) {
+      option.selected = true;
+    }
+    
+    filter_select.appendChild(option);
+  }
+  
+  // Update Tom Select with new options and selections
+  if(tom_select_filter) {
+    // Destroy and recreate Tom Select instance to properly reload options
+    tom_select_filter.destroy();
+    tom_select_filter = null;
+    initializeFilterSelect();
+    
+    // Re-apply selections
+    for(var i = 0; i < previousSelections.length; ++i) {
+      tom_select_filter.addItem(previousSelections[i]);
+    }
+  }
+}
+
+// Initialize Tom Select for filter
+function initializeFilterSelect() {
+  var filter_select = document.getElementById('filter-tags-select');
+  if(!filter_select || tom_select_filter) return; // Already initialized
+  
+  tom_select_filter = new TomSelect(filter_select, {
+    plugins: {
+      remove_button: {
+        title: 'Remove this item'
+      }
+    },
+    maxOptions: null,
+    hideSelected: false,
+    closeOnSelect: false,
+    onChange: function() {
+      // Update selectedFilters based on Tom Select values
+      selectedFilters = {};
+      var entries = Object.entries(tags);
+      for(var i = 0; i < entries.length; ++i) {
+        var tag_id = entries[i][0];
+        selectedFilters[tag_id] = false;
+      }
+      
+      // Mark selected items
+      var selected = tom_select_filter.getValue();
+      
+      // Convert string values from Tom Select to numbers
+      var selected_numbers = selected.map(function(val) { return parseInt(val, 10); });
+      
+      for(var i = 0; i < selected_numbers.length; ++i) {
+        selectedFilters[selected_numbers[i]] = true;
+      }
+      
+      applyHighlightFilters();
+    }
+  });
+}
+
+// Apply/remove filters to highlights
+function applyHighlightFilters() {
+  // Get array of selected filter tag IDs (convert to numbers)
+  var active_filters = Object.keys(selectedFilters).filter(function(id) {
+    return selectedFilters[id];
+  }).map(function(id) { return parseInt(id, 10); });
+  
+  // If no filters selected, show all highlights
+  if(active_filters.length === 0) {
+    var elements = document.querySelectorAll('[data-highlight-id]');
+    for(var i = 0; i < elements.length; ++i) {
+      elements[i].classList.remove('highlight-filtered-hidden');
+    }
+    return;
+  }
+  
+  // Separate filters into highlight tags and document tags
+  var highlight_tag_filters = [];
+  var document_tag_filters = [];
+  for(var i = 0; i < active_filters.length; ++i) {
+    if(tags[active_filters[i]] && tags[active_filters[i]].is_document_tag) {
+      document_tag_filters.push(active_filters[i]);
+    } else {
+      highlight_tag_filters.push(active_filters[i]);
+    }
+  }
+  
+  // Hide/show highlights based on filter
+  var entries = Object.entries(highlights);
+  for(var i = 0; i < entries.length; ++i) {
+    var id = entries[i][0];
+    var hl = entries[i][1];
+    
+    // Get all elements with this highlight ID (there may be multiple spans if text is split)
+    var elements = document.querySelectorAll('[data-highlight-id="' + id + '"]');
+    
+    if(elements.length === 0) {
+      continue;
+    }
+    
+    // Check if highlight has ALL of the selected highlight tags
+    var has_all_highlight_filter_tags = true;
+    for(var j = 0; j < highlight_tag_filters.length; ++j) {
+      if(hl.tags.indexOf(highlight_tag_filters[j]) === -1) {
+        has_all_highlight_filter_tags = false;
+        break;
+      }
+    }
+    
+    // Check if document has ALL of the selected document tags
+    var has_all_document_filter_tags = true;
+    var doc_tags = (documents['' + hl.document_id].tags || []);
+    for(var j = 0; j < document_tag_filters.length; ++j) {
+      if(doc_tags.indexOf(document_tag_filters[j]) === -1) {
+        has_all_document_filter_tags = false;
+        break;
+      }
+    }
+    
+    // Apply filter to all elements with this highlight ID
+    for(var k = 0; k < elements.length; ++k) {
+      if(has_all_highlight_filter_tags && has_all_document_filter_tags) {
+        elements[k].classList.remove('highlight-filtered-hidden');
+      } else {
+        elements[k].classList.add('highlight-filtered-hidden');
+      }
+    }
+  }
+}
+
 // Backlight
 var backlight_checkbox = document.getElementById('backlight');
 backlight_checkbox.addEventListener('change', function() {
@@ -1694,6 +1893,11 @@ function loadDocument(document_id) {
       setHighlight(info.highlights[i]);
     }
     console.log("Loaded " + info.highlights.length + " highlights");
+    
+    // Update the filter tags list
+    selectedFilters = {};
+    updateFilterTagsList();
+    initializeFilterSelect();
 
     // Update export button
     export_button.style.display = '';
@@ -1754,6 +1958,7 @@ function loadTag(tag_path, page) {
       var elem = document.createElement('div');
       elem.className = 'highlight-entry';
       elem.setAttribute('id', 'highlight-entry-' + hl.id);
+      elem.setAttribute('data-highlight-id', hl.id);
       elem.appendChild(content);
       elem.appendChild(document.createTextNode(' '));
 
@@ -1776,21 +1981,31 @@ function loadTag(tag_path, page) {
       for(var k = 0; k < doc_tags.length; ++k) {
         var dtag = document.createElement('a');
         dtag.className = 'badge badge-secondary';
-        dtag.textContent = tags['' + doc_tags[k]].path;
+        var tag_obj = tags['' + doc_tags[k]];
+        dtag.textContent = tag_obj.path;
+        var desc = tag_obj.description || 'Pas de description';
+        dtag.title = desc.length > 100 ? desc.substring(0, 100) + '...' : desc;
         linkTag(dtag, dtag.textContent);
         elem.appendChild(dtag);
         elem.appendChild(document.createTextNode(' '));
       }
 
-      var tag_names = hl.tags.map(function(tag) { return tags['' + tag].path; });
-      tag_names.sort();
-      for(var j = 0; j < tag_names.length; ++j) {
+      var tagged_with_ids = hl.tags.slice().sort(function(a, b) {
+        var path_a = tags['' + a].path;
+        var path_b = tags['' + b].path;
+        return path_a.localeCompare(path_b);
+      });
+      for(var j = 0; j < tagged_with_ids.length; ++j) {
         if(j > 0) {
           elem.appendChild(document.createTextNode(' '));
         }
+        var tag_id = tagged_with_ids[j];
+        var tag_obj = tags['' + tag_id];
         var taglink = document.createElement('a');
-        taglink.className = tag_names[j].startsWith('@') ? 'badge badge-warning' : 'badge badge-dark';
-        taglink.textContent = tag_names[j];
+        taglink.className = tag_obj.path.startsWith('@') ? 'badge badge-warning' : 'badge badge-dark';
+        taglink.textContent = tag_obj.path;
+        var desc = tag_obj.description || 'Pas de description';
+        taglink.title = desc.length > 100 ? desc.substring(0, 100) + '...' : desc;
         linkTag(taglink, taglink.textContent);
         elem.appendChild(taglink);
       }
@@ -1871,6 +2086,11 @@ function loadTag(tag_path, page) {
     }
 
     updateTagsList();
+
+    // Update the filter tags list for tag view
+    selectedFilters = {};
+    updateFilterTagsList();
+    initializeFilterSelect();
 
     // Update export button
     export_button.style.display = '';
@@ -2016,9 +2236,19 @@ function longPollForEvents() {
             end_offset: event.end_offset,
             tags: event.tags
           });
+          updateFilterTagsList();
+        } else if(current_tag !== null) {
+          // Reload tag view if we're viewing highlights by tag
+          loadTag(current_tag);
         }
       } else if(event.type === 'highlight_delete') {
-        removeHighlight(event.highlight_id);
+        if(current_tag !== null) {
+          // Reload tag view if we're viewing highlights by tag
+          loadTag(current_tag);
+        } else {
+          removeHighlight(event.highlight_id);
+          updateFilterTagsList();
+        }
       } else if(event.type === 'tag_add') {
         addTag({
           id: event.tag_id,

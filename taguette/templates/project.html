@@ -127,6 +127,13 @@
         </div>
       </div>
 
+      <div id="highlights-filter" class="form-group mt-3" style="display: none;">
+        <label for="filter-tags-select">{% trans %}Filter by tags{% endtrans %}</label>
+        <select id="filter-tags-select" class="form-control tom-select-filter" multiple placeholder="{% trans %}Select tags to filter...{% endtrans %}">
+          <!-- Filter options will be populated by JavaScript -->
+        </select>
+      </div>
+
       <div id="document-contents" style="direction: ltr;">
         <p style="font-style: oblique; text-align: center;">{% trans %}Load a document on the left{% endtrans %}</p>
       </div>

@@ -419,3 +419,16 @@ a.dropdown-item:hover {
     line-height: 1.0;
   }
 }
+
+/* Highlight filtering */
+#highlights-filter {
+  margin-bottom: 1rem;
+}
+
+#filter-tags-select {
+  max-height: 200px;
+}
+
+.highlight-filtered-hidden {
+  display: none !important;
+}
