@@ -359,6 +359,9 @@ function locatePos(pos) {
 
   var offset = pos - chunk_start;
   var node = document.getElementById('doc-offset-' + chunk_start);
+  if(node === null) {
+    throw new Error('Document chunk not found: doc-offset-' + chunk_start);
+  }
   while(node.firstChild) {
     node = node.firstChild;
   }
@@ -1237,14 +1240,17 @@ function setHighlight(highlight) {
   sortByKey(tag_names, function(path) { return path; });
   var is_temporary = tag_names.every(function(name) { return name.startsWith('@'); });
   tag_names = tag_names.join(", ");
-  try {
-    highlightSelection([highlight.start_offset, highlight.end_offset], id, editHighlight, tag_names, is_temporary ? 'highlight-temporary' : null);
-    console.log("Highlight set:", highlight);
-  } catch(error) {
-    console.error(
-      "Error setting highlight ", highlight.id, " ", [highlight.start_offset, highlight.end_offset],
-      ":", error,
-    );
+  // Only highlight text when viewing a document (not in tag view)
+  if(current_document !== null && chunk_offsets.length > 0) {
+    try {
+      highlightSelection([highlight.start_offset, highlight.end_offset], id, editHighlight, tag_names, is_temporary ? 'highlight-temporary' : null);
+      console.log("Highlight set:", highlight);
+    } catch(error) {
+      console.error(
+        "Error setting highlight ", highlight.id, " ", [highlight.start_offset, highlight.end_offset],
+        ":", error,
+      );
+    }
   }
 }
 
@@ -1783,7 +1789,7 @@ function loadTag(tag_path, page) {
           elem.appendChild(document.createTextNode(' '));
         }
         var taglink = document.createElement('a');
-        taglink.className = 'badge badge-dark';
+        taglink.className = tag_names[j].startsWith('@') ? 'badge badge-warning' : 'badge badge-dark';
         taglink.textContent = tag_names[j];
         linkTag(taglink, taglink.textContent);
         elem.appendChild(taglink);
