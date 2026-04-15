@@ -1193,3 +1193,12 @@ msgstr "Filtrer par tags"
 #: taguette/templates/project.html:132
 msgid "Select tags to filter..."
 msgstr "Sélectionner les tags à filtrer..."
+
+#: taguette/templates/project.html:133
+msgid "Must have tags"
+msgstr "Contient"
+
+
+#: taguette/templates/project.html:133
+msgid "Must NOT have tags"
+msgstr "Ne contient pas"

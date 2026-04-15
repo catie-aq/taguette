@@ -1280,15 +1280,18 @@ function removeHighlight(id) {
  * Highlight filtering
  */
 
-var selectedFilters = {};  // Track which tags are selected for filtering
+var selectedFiltersInclude = {};  // Track tags that must be present
+var selectedFiltersExclude = {};  // Track tags that must not be present
 
-// Tom Select instance for filter
-var tom_select_filter = null;
+// Tom Select instances for filter
+var tom_select_filter_include = null;
+var tom_select_filter_exclude = null;
 
 // Update the filter tags list in the right panel
 function updateFilterTagsList() {
-  var filter_select = document.getElementById('filter-tags-select');
-  if(!filter_select) return;
+  var filter_select_include = document.getElementById('filter-tags-include');
+  var filter_select_exclude = document.getElementById('filter-tags-exclude');
+  if(!filter_select_include || !filter_select_exclude) return;
   
   // Get all unique tag IDs from current highlights AND all defined tags
   var tag_ids = new Set();
@@ -1327,12 +1330,11 @@ function updateFilterTagsList() {
   });
   
   // Store currently selected values
-  var previousSelections = tom_select_filter ? tom_select_filter.getValue() : [];
+  var previousSelectionsInclude = tom_select_filter_include ? tom_select_filter_include.getValue() : [];
+  var previousSelectionsExclude = tom_select_filter_exclude ? tom_select_filter_exclude.getValue() : [];
   
-  // Clear and rebuild options
-  filter_select.innerHTML = '';
-  
-  // Add options for each tag
+  // Populate include filter
+  filter_select_include.innerHTML = '';
   for(var i = 0; i < sorted_tag_ids.length; ++i) {
     var tag_id = sorted_tag_ids[i];
     var tag = tags[tag_id];
@@ -1345,34 +1347,54 @@ function updateFilterTagsList() {
     }
     option.textContent = label;
     
-    // Restore previous selections
-    if(previousSelections.indexOf(tag_id) !== -1) {
+    if(previousSelectionsInclude.indexOf('' + tag_id) !== -1) {
       option.selected = true;
     }
     
-    filter_select.appendChild(option);
+    filter_select_include.appendChild(option);
   }
   
-  // Update Tom Select with new options and selections
-  if(tom_select_filter) {
-    // Destroy and recreate Tom Select instance to properly reload options
-    tom_select_filter.destroy();
-    tom_select_filter = null;
-    initializeFilterSelect();
+  // Populate exclude filter
+  filter_select_exclude.innerHTML = '';
+  for(var i = 0; i < sorted_tag_ids.length; ++i) {
+    var tag_id = sorted_tag_ids[i];
+    var tag = tags[tag_id];
     
-    // Re-apply selections
-    for(var i = 0; i < previousSelections.length; ++i) {
-      tom_select_filter.addItem(previousSelections[i]);
+    var option = document.createElement('option');
+    option.value = tag_id;
+    var label = tag.path;
+    if(tag.is_document_tag) {
+      label += ' (doc)';
     }
+    option.textContent = label;
+    
+    if(previousSelectionsExclude.indexOf('' + tag_id) !== -1) {
+      option.selected = true;
+    }
+    
+    filter_select_exclude.appendChild(option);
   }
+  
+  // Update Tom Select instances
+  if(tom_select_filter_include) {
+    tom_select_filter_include.destroy();
+    tom_select_filter_include = null;
+  }
+  if(tom_select_filter_exclude) {
+    tom_select_filter_exclude.destroy();
+    tom_select_filter_exclude = null;
+  }
+  initializeFilterSelect();
 }
 
 // Initialize Tom Select for filter
 function initializeFilterSelect() {
-  var filter_select = document.getElementById('filter-tags-select');
-  if(!filter_select || tom_select_filter) return; // Already initialized
+  var filter_select_include = document.getElementById('filter-tags-include');
+  var filter_select_exclude = document.getElementById('filter-tags-exclude');
+  if(!filter_select_include || !filter_select_exclude) return;
+  if(tom_select_filter_include || tom_select_filter_exclude) return; // Already initialized
   
-  tom_select_filter = new TomSelect(filter_select, {
+  var tom_select_config = {
     plugins: {
       remove_button: {
         title: 'Remove this item'
@@ -1382,38 +1404,26 @@ function initializeFilterSelect() {
     hideSelected: false,
     closeOnSelect: false,
     onChange: function() {
-      // Update selectedFilters based on Tom Select values
-      selectedFilters = {};
-      var entries = Object.entries(tags);
-      for(var i = 0; i < entries.length; ++i) {
-        var tag_id = entries[i][0];
-        selectedFilters[tag_id] = false;
-      }
-      
-      // Mark selected items
-      var selected = tom_select_filter.getValue();
-      
-      // Convert string values from Tom Select to numbers
-      var selected_numbers = selected.map(function(val) { return parseInt(val, 10); });
-      
-      for(var i = 0; i < selected_numbers.length; ++i) {
-        selectedFilters[selected_numbers[i]] = true;
-      }
-      
       applyHighlightFilters();
     }
-  });
+  };
+  
+  tom_select_filter_include = new TomSelect(filter_select_include, tom_select_config);
+  tom_select_filter_exclude = new TomSelect(filter_select_exclude, tom_select_config);
 }
 
 // Apply/remove filters to highlights
 function applyHighlightFilters() {
-  // Get array of selected filter tag IDs (convert to numbers)
-  var active_filters = Object.keys(selectedFilters).filter(function(id) {
-    return selectedFilters[id];
-  }).map(function(id) { return parseInt(id, 10); });
+  // Get array of selected filter tag IDs for include
+  var include_filters = (tom_select_filter_include ? tom_select_filter_include.getValue() : [])
+    .map(function(val) { return parseInt(val, 10); });
+  
+  // Get array of selected filter tag IDs for exclude
+  var exclude_filters = (tom_select_filter_exclude ? tom_select_filter_exclude.getValue() : [])
+    .map(function(val) { return parseInt(val, 10); });
   
   // If no filters selected, show all highlights
-  if(active_filters.length === 0) {
+  if(include_filters.length === 0 && exclude_filters.length === 0) {
     var elements = document.querySelectorAll('[data-highlight-id]');
     for(var i = 0; i < elements.length; ++i) {
       elements[i].classList.remove('highlight-filtered-hidden');
@@ -1422,51 +1432,85 @@ function applyHighlightFilters() {
   }
   
   // Separate filters into highlight tags and document tags
-  var highlight_tag_filters = [];
-  var document_tag_filters = [];
-  for(var i = 0; i < active_filters.length; ++i) {
-    if(tags[active_filters[i]] && tags[active_filters[i]].is_document_tag) {
-      document_tag_filters.push(active_filters[i]);
+  var include_highlight_tags = [];
+  var include_document_tags = [];
+  for(var i = 0; i < include_filters.length; ++i) {
+    if(tags[include_filters[i]] && tags[include_filters[i]].is_document_tag) {
+      include_document_tags.push(include_filters[i]);
     } else {
-      highlight_tag_filters.push(active_filters[i]);
+      include_highlight_tags.push(include_filters[i]);
     }
   }
   
-  // Hide/show highlights based on filter
+  var exclude_highlight_tags = [];
+  var exclude_document_tags = [];
+  for(var i = 0; i < exclude_filters.length; ++i) {
+    if(tags[exclude_filters[i]] && tags[exclude_filters[i]].is_document_tag) {
+      exclude_document_tags.push(exclude_filters[i]);
+    } else {
+      exclude_highlight_tags.push(exclude_filters[i]);
+    }
+  }
+  
+  // Hide/show highlights based on filters
   var entries = Object.entries(highlights);
   for(var i = 0; i < entries.length; ++i) {
     var id = entries[i][0];
     var hl = entries[i][1];
     
-    // Get all elements with this highlight ID (there may be multiple spans if text is split)
+    // Get all elements with this highlight ID
     var elements = document.querySelectorAll('[data-highlight-id="' + id + '"]');
     
     if(elements.length === 0) {
       continue;
     }
     
-    // Check if highlight has ALL of the selected highlight tags
-    var has_all_highlight_filter_tags = true;
-    for(var j = 0; j < highlight_tag_filters.length; ++j) {
-      if(hl.tags.indexOf(highlight_tag_filters[j]) === -1) {
-        has_all_highlight_filter_tags = false;
+    // Check if highlight has ALL of the include highlight tags
+    var has_all_include_highlight_tags = true;
+    for(var j = 0; j < include_highlight_tags.length; ++j) {
+      if(hl.tags.indexOf(include_highlight_tags[j]) === -1) {
+        has_all_include_highlight_tags = false;
         break;
       }
     }
     
-    // Check if document has ALL of the selected document tags
-    var has_all_document_filter_tags = true;
-    var doc_tags = (documents['' + hl.document_id].tags || []);
-    for(var j = 0; j < document_tag_filters.length; ++j) {
-      if(doc_tags.indexOf(document_tag_filters[j]) === -1) {
-        has_all_document_filter_tags = false;
+    // Check if highlight has ANY of the exclude highlight tags
+    var has_any_exclude_highlight_tags = false;
+    for(var j = 0; j < exclude_highlight_tags.length; ++j) {
+      if(hl.tags.indexOf(exclude_highlight_tags[j]) !== -1) {
+        has_any_exclude_highlight_tags = true;
         break;
       }
     }
+    
+    // Check if document has ALL of the include document tags
+    var has_all_include_document_tags = true;
+    var doc_tags = (documents['' + hl.document_id].tags || []);
+    for(var j = 0; j < include_document_tags.length; ++j) {
+      if(doc_tags.indexOf(include_document_tags[j]) === -1) {
+        has_all_include_document_tags = false;
+        break;
+      }
+    }
+    
+    // Check if document has ANY of the exclude document tags
+    var has_any_exclude_document_tags = false;
+    for(var j = 0; j < exclude_document_tags.length; ++j) {
+      if(doc_tags.indexOf(exclude_document_tags[j]) !== -1) {
+        has_any_exclude_document_tags = true;
+        break;
+      }
+    }
+    
+    // Show if:
+    // - Has ALL include tags (if any include tags are selected)
+    // - AND doesn't have ANY exclude tags (if any exclude tags are selected)
+    var should_show = has_all_include_highlight_tags && !has_any_exclude_highlight_tags &&
+                      has_all_include_document_tags && !has_any_exclude_document_tags;
     
     // Apply filter to all elements with this highlight ID
     for(var k = 0; k < elements.length; ++k) {
-      if(has_all_highlight_filter_tags && has_all_document_filter_tags) {
+      if(should_show) {
         elements[k].classList.remove('highlight-filtered-hidden');
       } else {
         elements[k].classList.add('highlight-filtered-hidden');

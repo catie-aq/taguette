@@ -128,10 +128,23 @@
       </div>
 
       <div id="highlights-filter" class="form-group mt-3" style="display: none;">
-        <label for="filter-tags-select">{% trans %}Filter by tags{% endtrans %}</label>
-        <select id="filter-tags-select" class="form-control tom-select-filter" multiple placeholder="{% trans %}Select tags to filter...{% endtrans %}">
-          <!-- Filter options will be populated by JavaScript -->
-        </select>
+        <label>{% trans %}Filter by tags{% endtrans %}</label>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <label for="filter-tags-include" class="small">{% trans %}Must have tags{% endtrans %}</label>
+            <select id="filter-tags-include" class="form-control tom-select-filter" multiple placeholder="{% trans %}Select tags...{% endtrans %}">
+              <!-- Filter options will be populated by JavaScript -->
+            </select>
+          </div>
+          
+          <div class="col-md-6">
+            <label for="filter-tags-exclude" class="small">{% trans %}Must NOT have tags{% endtrans %}</label>
+            <select id="filter-tags-exclude" class="form-control tom-select-filter" multiple placeholder="{% trans %}Select tags...{% endtrans %}">
+              <!-- Filter options will be populated by JavaScript -->
+            </select>
+          </div>
+        </div>
       </div>
 
       <div id="document-contents" style="direction: ltr;">
