@@ -2007,7 +2007,57 @@ function loadTag(tag_path, page) {
         var desc = tag_obj.description || 'Pas de description';
         taglink.title = desc.length > 100 ? desc.substring(0, 100) + '...' : desc;
         linkTag(taglink, taglink.textContent);
+
+        delete_tag_btn = document.createElement('button');
+        delete_tag_btn.className = 'delete-highlight-tag';
+        delete_tag_btn.innerHTML = '&times;';
+        delete_tag_btn.setAttribute('data-highlight-id', hl.id);
+        delete_tag_btn.setAttribute('data-tag-id', tag_id);
+        delete_tag_btn.setAttribute('data-document-id', hl.document_id);
+        delete_tag_btn.setAttribute('data-tag-path', tag_obj.path);
+        delete_tag_btn.title = gettext("Delete tag");
+        delete_tag_btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          var highlight_id = this.getAttribute('data-highlight-id');
+          var tag_id_to_remove = parseInt(this.getAttribute('data-tag-id'));
+          var doc_id = this.getAttribute('data-document-id');
+          var tag_path = this.getAttribute('data-tag-path');
+          
+          // Confirm before deleting
+          if(!confirm(gettext("Remove tag") + " '" + tag_path + "'?")) {
+            return;
+          }
+          
+          // Get the current highlight and filter out the tag to be removed
+          var current_highlight = highlights['' + highlight_id];
+          var remaining_tags = current_highlight.tags.filter(function(tid) {
+            return tid !== tag_id_to_remove;
+          });
+          
+          console.log("Removing tag " + tag_id_to_remove + " from highlight " + highlight_id);
+          showSpinner();
+          postJSON(
+            '/api/project/' + project_id + '/document/' + doc_id + '/highlight/' + highlight_id,
+            {tags: remaining_tags}
+          )
+          .then(function() {
+            console.log("Tag removed from highlight");
+            // Reload the tag view to reflect the changes
+            loadTag(current_tag, 1);
+          })
+          .catch(function(error) {
+            console.error("Failed to remove tag from highlight:", error);
+            alert(gettext("Couldn't remove tag from highlight!") + "\n\n" + error);
+          })
+          .then(hideSpinner);
+        });
+        taglink.appendChild(delete_tag_btn);
+
+
         elem.appendChild(taglink);
+
+        
       }
 
       if(hl.context) {

@@ -220,6 +220,11 @@ html:not([dir="rtl"]) .navbar-nav.t-me-auto {
   text-decoration: none !important;
 }
 
+.badge {
+  display: flex;
+  align-items: center;
+}
+
 /* Don't show the resize control on textareas */
 textarea.form-control {
   resize: none;
@@ -431,4 +436,34 @@ a.dropdown-item:hover {
 
 .highlight-filtered-hidden {
   display: none !important;
+}
+
+/* Delete button for tags in tag view */
+.delete-highlight-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.4em;
+  padding: 0;
+  width: 0.8em;
+  height: 0.8em;
+  border: none;
+  background-color: transparent;
+  color: inherit;
+  font-size: 1.4em;
+  line-height: 3;
+  cursor: pointer;
+  /* opacity: 0.6; */
+  flex-shrink: 0;
+  /* border-radius: 50%; */
+  transition: opacity 0.2s ease;
+}
+
+.delete-highlight-tag:hover {
+  opacity: 1;
+}
+
+.delete-highlight-tag:focus {
+  outline: none;
+  opacity: 1;
 }
