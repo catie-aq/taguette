@@ -138,7 +138,7 @@ msgstr "Aucune marque avec ce tag."
 
 #: taguette/static/js/taguette.js:1724
 msgid "Add tag"
-msgstr "Ajouter marque"
+msgstr "Ajouter tag"
 
 #: taguette/static/js/taguette.js:1799
 msgid "Error loading tag highlights!"
