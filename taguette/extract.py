@@ -114,6 +114,17 @@ def extract(html, start, end):
     return str(soup)
 
 
+def document_text(html):
+    """Return the document's text as UTF-8 bytes, excluding HTML tags.
+
+    This is the exact basis over which highlight offsets are measured: the
+    concatenation of every text node's UTF-8 bytes, in document order (the same
+    bytes counted by ``extract()`` and ``highlight()``).
+    """
+    soup = BeautifulSoup(html, 'html5lib')
+    return b''.join(s.encode('utf-8') for s in soup.strings)
+
+
 def byte_to_str_index(string, byte_index):
     """Converts a byte index in the UTF-8 string into a codepoint index.
 

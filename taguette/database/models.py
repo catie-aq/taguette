@@ -384,6 +384,7 @@ class Command(Base):
         return cmd_json
 
     TYPES = {'project_meta', 'document_add', 'document_delete',
+             'document_change_content',
              'highlight_add', 'highlight_delete', 'tag_add', 'tag_delete',
              'tag_merge', 'member_add', 'member_remove', 'project_import'}
 
@@ -423,6 +424,21 @@ class Command(Base):
                      'description': document.description,
                      'text_direction': document.text_direction.name,
                      'document_tags': document_tag_ids},
+        )
+
+    @classmethod
+    @command_fields(
+        columns=['project_id', 'document_id'],
+        payload_fields=[],
+    )
+    def document_change_content(cls, user_login, document):
+        assert isinstance(document, Document)
+        assert isinstance(document.id, int)
+        return cls(
+            user_login=user_login,
+            project_id=document.project_id,
+            document_id=document.id,
+            payload={'type': 'document_change_content'},  # keep in sync above
         )
 
     @classmethod

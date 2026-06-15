@@ -1,12 +1,13 @@
 import alembic.util.exc
 import asyncio
 import functools
+import hashlib
 import json
 import logging
 import math
 import os
 import prometheus_client
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from sqlalchemy.exc import IntegrityError, DatabaseError, NoSuchTableError
 from sqlalchemy.orm import aliased, defer, joinedload
 import tempfile
@@ -273,33 +274,27 @@ class Document(BaseHandler):
 
 
 class DocumentContents(BaseHandler):
+    # If we ever change the format of this response, bump this constant so
+    # that stale cached copies are invalidated
+    VERSION = 1
+
     @api_auth
     @PROM_REQUESTS.sync('document_contents')
     def get(self, project_id, document_id):
-        # Document contents are immutable. If we ever make a change to the
-        # format of this response, change this constant
-        version = 1
+        document, _ = self.get_document(project_id, document_id, True)
 
-        # Still, don't do it in desktop mode, because people might re-create
+        # Don't bother caching in desktop mode, because people might re-create
         # their Taguette database sooner than their browser profile
         if self.application.config['MULTIUSER']:
-            # Cache for a long time
-            self.set_header(
-                'Cache-Control',
-                'private,max-age=31536000,immutable',
-            )
-
-            # Use a fixed etag
-            try:
-                document_id = int(document_id)
-            except ValueError:
-                raise HTTPError(404)
-            self.set_header('Etag', '"doc-%d-%d"' % (document_id, version))
-
-            # Always return 304 if the client has a copy cached
-            # This means that access control is not enforced, however:
-            #   * no content is sent
-            #   * 304 is sent whether or not the document actually exists
+            # Document contents used to be immutable but can now be edited, so
+            # the cache has to be revalidated. Derive the ETag from the
+            # contents: unchanged contents return 304, edited contents get a
+            # new ETag and are re-downloaded.
+            digest = hashlib.sha256(
+                document.contents.encode('utf-8')
+            ).hexdigest()
+            self.set_header('Cache-Control', 'private,no-cache')
+            self.set_header('Etag', '"doc-%d-%s"' % (self.VERSION, digest))
             if self.check_etag_header():
                 self.set_status(304)
                 self.set_header(
@@ -308,12 +303,63 @@ class DocumentContents(BaseHandler):
                 )
                 return self.finish()
 
-        document, _ = self.get_document(project_id, document_id, True)
         return self.send_json({
             'contents': [
                 {'offset': 0, 'contents': document.contents},
             ],
         })
+
+    @api_auth
+    @PROM_REQUESTS.sync('document_set_contents')
+    def post(self, project_id, document_id):
+        document, privileges = self.get_document(project_id, document_id, True)
+        if not privileges.can_edit_document():
+            return self.send_error_json(403, self.gettext("Unauthorized"))
+
+        obj = self.get_json()
+        html = obj.get('contents', '') if obj else ''
+        # Sanitize the same way imported documents are
+        contents = convert.get_html_body(html)
+        if not contents.strip():
+            return self.send_error_json(
+                400,
+                self.gettext("Document content can't be empty"),
+            )
+
+        # Highlights are byte ranges in the document text. Changing the text
+        # before or within a highlight shifts its position. We allow editing
+        # only past the last highlight: the text up to the furthest end_offset
+        # ("protected zone") must stay byte-for-byte identical so every
+        # existing highlight keeps pointing at the same passage.
+        last_offset = (
+            self.db.query(func.max(database.Highlight.end_offset))
+            .filter(database.Highlight.document_id == document.id)
+            .scalar()
+        )
+        if last_offset:
+            old_text = extract.document_text(document.contents)
+            new_text = extract.document_text(contents)
+            if new_text[:last_offset] != old_text[:last_offset]:
+                return self.send_error_json(
+                    400,
+                    self.gettext(
+                        "This change would move existing highlights. You can "
+                        "only add or change text after the last highlighted "
+                        "passage."
+                    ),
+                )
+
+        document.contents = contents
+        self.db.flush()
+        cmd = database.Command.document_change_content(
+            self.current_user,
+            document,
+        )
+        self.db.add(cmd)
+        self.db.commit()
+        self.db.refresh(cmd)
+        self.application.notify_project(document.project_id, cmd)
+        return self.send_json({'id': document.id})
 
 
 class TagAdd(BaseHandler):

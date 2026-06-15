@@ -600,6 +600,8 @@ function addDocument(document) {
     } else {
       document_contents.style.direction = 'ltr';
     }
+    // Keep the sticky title in sync if the document was renamed
+    document_title.textContent = document.name;
   }
   updateDocumentsList();
 }
@@ -1541,6 +1543,11 @@ var highlight_add_modal = document.getElementById('highlight-add-modal');
 
 // Updates current_selection and visibility of the controls
 function selectionChanged() {
+  // Don't offer to create highlights while editing the document content
+  if(editing_document) {
+    document.getElementById('hlinfo').style.display = 'none';
+    return;
+  }
   current_selection = describeSelection();
   var hlinfo = document.getElementById('hlinfo');
   if(current_selection !== null) {
@@ -1881,11 +1888,106 @@ document.getElementById('members-current').addEventListener('submit', function(e
 
 var document_contents = document.getElementById('document-contents');
 var export_button = document.getElementById('export-button');
+var document_title = document.getElementById('document-title');
+
+/*
+ * Editing a document's content in place
+ */
+var editing_document = false;
+var document_has_highlights = false;
+var edit_controls = document.getElementById('document-edit-controls');
+var edit_btn = document.getElementById('document-edit-btn');
+var edit_save_btn = document.getElementById('document-edit-save');
+var edit_cancel_btn = document.getElementById('document-edit-cancel');
+var edit_hint = document.getElementById('document-edit-hint');
+
+// Whether the current user is allowed to edit document content
+function canEditDocuments() {
+  var me = members[user_login];
+  return me && (me.privileges === 'ADMIN' || me.privileges === 'MANAGE_DOCS');
+}
+
+// Show/reset the edit controls for the document that was just loaded
+function resetEditControls(has_highlights) {
+  document_has_highlights = !!has_highlights;
+  exitEditMode();
+  if(canEditDocuments()) {
+    edit_controls.style.display = '';
+    edit_btn.style.display = '';
+    edit_btn.disabled = false;
+    // Editing is always allowed; with highlights it's restricted to text past
+    // the last highlighted passage (enforced server-side)
+    edit_hint.style.display = document_has_highlights ? '' : 'none';
+  } else {
+    edit_controls.style.display = 'none';
+  }
+}
+
+function enterEditMode() {
+  if(current_document === null) { return; }
+  editing_document = true;
+  document.getElementById('hlinfo').style.display = 'none';
+  document_contents.contentEditable = 'true';
+  document_contents.classList.add('editing');
+  edit_btn.style.display = 'none';
+  edit_save_btn.style.display = '';
+  edit_cancel_btn.style.display = '';
+  edit_hint.style.display = document_has_highlights ? '' : 'none';
+  document_contents.focus();
+}
+
+function exitEditMode() {
+  editing_document = false;
+  document_contents.contentEditable = 'false';
+  document_contents.classList.remove('editing');
+  edit_save_btn.style.display = 'none';
+  edit_cancel_btn.style.display = 'none';
+}
+
+function saveEditDocument() {
+  if(current_document === null) { return; }
+  var doc_id = current_document;
+  edit_save_btn.disabled = true;
+  edit_cancel_btn.disabled = true;
+  postJSON(
+    '/api/project/' + project_id + '/document/' + doc_id + '/contents',
+    {contents: document_contents.innerHTML}
+  )
+  .then(function() {
+    exitEditMode();
+    // Reload to display the server-sanitized version
+    loadDocument(doc_id);
+  })
+  .catch(function(error) {
+    console.error("Failed to save document content:", error);
+    alert(gettext("Error saving document!") + "\n\n" + error);
+  })
+  .then(function() {
+    edit_save_btn.disabled = false;
+    edit_cancel_btn.disabled = false;
+  });
+}
+
+function cancelEditDocument() {
+  var doc_id = current_document;
+  exitEditMode();
+  if(doc_id !== null) {
+    // Reload to discard local changes
+    loadDocument(doc_id);
+  }
+}
+
+edit_btn.addEventListener('click', enterEditMode);
+edit_save_btn.addEventListener('click', saveEditDocument);
+edit_cancel_btn.addEventListener('click', cancelEditDocument);
 
 function loadDocument(document_id) {
   if(document_id === null) {
     document_contents.style.direction = 'ltr';
     document_contents.innerHTML = '<p style="font-style: oblique; text-align: center;">' + gettext("Load a document on the left") + '</p>';
+    document_title.style.display = 'none';
+    exitEditMode();
+    edit_controls.style.display = 'none';
     return;
   }
   showSpinner();
@@ -1916,6 +2018,14 @@ function loadDocument(document_id) {
       document_contents.style.direction = 'ltr';
     }
     current_document = document_id;
+
+    // Show the document name in a sticky title bar
+    var loaded_doc = documents['' + document_id];
+    document_title.textContent = loaded_doc ? loaded_doc.name : '';
+    document_title.style.display = '';
+
+    // Offer in-place content editing (only when there are no highlights)
+    resetEditControls(info.highlights.length > 0);
 
     // Update current document highlight in left panel
     var document_links = document.getElementsByClassName('document-link-current');
@@ -1982,6 +2092,9 @@ function loadTag(tag_path, page) {
     document_contents.style.direction = 'ltr';
     current_tag = tag_path;
     current_document = null;
+    document_title.style.display = 'none';
+    exitEditMode();
+    edit_controls.style.display = 'none';
     var document_links = document.getElementsByClassName('document-link-current');
     for(var i = document_links.length - 1; i >= 0; --i) {
       document_links[i].classList.remove('document-link-current');
@@ -2320,6 +2433,12 @@ function longPollForEvents() {
           text_direction: event.text_direction,
           tags: event.document_tags || []
         });
+      } else if(event.type === 'document_change_content') {
+        // Reload the document if we're viewing it (unless we're the one
+        // currently editing it)
+        if(event.document_id === current_document && !editing_document) {
+          loadDocument(current_document);
+        }
       } else if(event.type === 'document_delete') {
         removeDocument(event.document_id);
       } else if(event.type === 'highlight_add') {
