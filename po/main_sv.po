@@ -1,25 +1,25 @@
-# Translations template for Taguette.
+# Swedish (Sweden) translations for Taguette.
 # Copyright (C) 2018 Remi Rampin and Taguette contributors
 # This file is distributed under the same license as the Taguette project.
 # Remi Rampin <remi@rampin.org>, 2018.
-# 
+#
 # Translators:
 # Elinor Bratt, 2022
-# 
 msgid ""
 msgstr ""
-"Project-Id-Version: Taguette\n"
+"Project-Id-Version:  Taguette\n"
 "Report-Msgid-Bugs-To: hi@taguette.org\n"
-"POT-Creation-Date: 2025-10-17 12:53-0400\n"
+"POT-Creation-Date: 2026-06-15 08:23+0000\n"
 "PO-Revision-Date: 2019-05-08 16:49+0000\n"
 "Last-Translator: \n"
-"Language-Team: Swedish (Sweden) (https://app.transifex.com/remram44/teams/98824/sv_SE/)\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.11.0\n"
 "Language: sv_SE\n"
+"Language-Team: Swedish (Sweden) "
+"(https://app.transifex.com/remram44/teams/98824/sv_SE/)\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: taguette/main.py:265
 msgid "Port number on which to listen"
@@ -104,7 +104,8 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Taguette %(version)s is now running. You can connect to it using this link:\n"
+"    Taguette %(version)s is now running. You can connect to it using this"
+" link:\n"
 "\n"
 "    %(url)s\n"
 msgstr ""
@@ -112,6 +113,222 @@ msgstr ""
 "    Taguette %(version)s är nu igång. Du kan ansluta via denna länk:\n"
 "\n"
 "    %(url)s\n"
+
+#: taguette/database/__init__.py:137
+msgid ""
+"\n"
+"    The database schema used by Taguette has changed! We will try to\n"
+"    update your workspace automatically.\n"
+msgstr ""
+"\n"
+"Databasschemat som används av Taguette har ändrats! Vi ska försöka\n"
+"uppdatera din arbetsyta automatiskt.\n"
+
+#: taguette/database/__init__.py:148
+#, python-format
+msgid ""
+"\n"
+"    A backup copy of your database file has been created. If the update\n"
+"    goes horribly wrong, make sure to keep that file, and let us know:\n"
+"    %(backup)s\n"
+msgstr ""
+"\n"
+"   En säkerhetskopia av din databasfil har skapats. Om uppdateringen\n"
+"   går fruktansvärt fel, se till att behålla den filen och låt oss veta:\n"
+"   %(backup)s\n"
+
+#: taguette/database/__init__.py:160
+#, python-format
+msgid ""
+"\n"
+"    The database schema used by Taguette has changed! Because you are not"
+" using\n"
+"    SQLite, we will not attempt a migration automatically; back up your "
+"data and\n"
+"    use `taguette --database=%(url)s migrate` if you want to proceed."
+msgstr ""
+"\n"
+"Databasschemat som används av Taguette har ändrats! Eftersom du inte "
+"använder SQLite, kommer vi           inte att försöka migrera "
+"automatiskt; säkerhetskopiera dina data och använd `taguette "
+"--database=%(url)s migrate` om du vill fortsätta."
+
+#: taguette/web/views.py:135
+msgid "Invalid login or password"
+msgstr "Ogiltigt användarnamn eller lösenord"
+
+#: taguette/web/views.py:180 taguette/web/views.py:263
+#: taguette/web/views.py:419
+msgid "Passwords do not match"
+msgstr "Lösenorden matchar inte"
+
+#: taguette/web/views.py:182
+msgid "User name is taken"
+msgstr "Upptaget användarnamn"
+
+#: taguette/web/views.py:189
+msgid "Email address is already used"
+msgstr "E-postadressen används redan"
+
+#: taguette/web/views.py:200
+msgid "Terms of Service must be accepted"
+msgstr "Användarvillkoren måste accepteras"
+
+#: taguette/web/views.py:301
+msgid "This email address is not associated with any user"
+msgstr "Denna e-postadress är inte kopplad till någon användare"
+
+#: taguette/web/views.py:330
+msgid "Password reset for Taguette"
+msgstr "Lösenordsåterställning för Taguette"
+
+#: taguette/web/views.py:376
+msgid "Invalid token"
+msgstr "Ogiltig token"
+
+#: taguette/web/views.py:380
+msgid "No user associated with that token"
+msgstr "Token ej kopplad till en användare"
+
+#: taguette/web/views.py:383
+msgid "Password has already been changed"
+msgstr "Lösenordet har redan ändrats"
+
+#. Default tag name
+#: taguette/web/views.py:462
+msgid "interesting"
+msgstr "Intressant"
+
+#. Default tag description
+#: taguette/web/views.py:464
+msgid "Further review required"
+msgstr "Ytterligare granskning krävs"
+
+#: taguette/web/views.py:500
+msgid "You don't have permission to delete this project"
+msgstr "Du har inte behörighet att ta bort det här projektet"
+
+#: taguette/web/views.py:534 taguette/web/views.py:561
+msgid "You don't have permission to import a codebook"
+msgstr "Du har inte behörighet att importera en kodbok"
+
+#: taguette/web/views.py:579
+#, python-format
+msgid "Row %d: %s"
+msgstr "Rad %d: %s"
+
+#: taguette/web/views.py:698
+msgid "Error importing tags, concurrent changes caused a conflict"
+msgstr "Fel vid import av taggar, samtidiga ändringar orsakade en konflikt"
+
+#: taguette/web/views.py:712
+msgid "No file provided"
+msgstr "Ingen fil försedd"
+
+#: taguette/web/__init__.py:60 taguette/web/base.py:622
+msgctxt "page title"
+msgid "Error 404"
+msgstr "Error 404"
+
+#: taguette/web/__init__.py:61 taguette/web/base.py:623
+msgid "This page does not exist."
+msgstr "Den här sidan finns inte."
+
+#: taguette/web/base.py:515
+msgid ""
+" | Please report issues via <a "
+"href=\"https://gitlab.com/remram44/taguette\">GitLab</a> or <a "
+"href=\"mailto:hi@taguette.org\">hi@taguette.org</a>!"
+msgstr ""
+" | Vänligen rapportera problem via <a "
+"href=\"https://gitlab.com/remram44/taguette\">GitLab</a> eller<a "
+"href=\"mailto:hi@taguette.org\">hi@taguette.org</a>!"
+
+#: taguette/web/base.py:629
+#, python-format
+msgctxt "page title"
+msgid "Error %d"
+msgstr "Error %d"
+
+#: taguette/web/api.py:53
+msgid "Not logged in"
+msgstr "Ej inloggad"
+
+#: taguette/web/api.py:83 taguette/web/api.py:115 taguette/web/api.py:211
+#: taguette/web/api.py:261 taguette/web/api.py:317 taguette/web/api.py:371
+#: taguette/web/api.py:406 taguette/web/api.py:442 taguette/web/api.py:467
+#: taguette/web/api.py:523 taguette/web/api.py:583 taguette/web/api.py:671
+#: taguette/web/api.py:780
+msgid "Unauthorized"
+msgstr "Obehörig"
+
+#: taguette/web/api.py:326
+#, fuzzy
+msgid "Document content can't be empty"
+msgstr "Dokumentets namn får inte vara tomt"
+
+#: taguette/web/api.py:346
+msgid ""
+"This change would move existing highlights. You can only add or change "
+"text after the last highlighted passage."
+msgstr ""
+
+#: taguette/web/api.py:411 taguette/web/api.py:445 taguette/web/api.py:477
+#: taguette/web/api.py:536 taguette/web/api.py:615
+msgid "No such tag"
+msgstr "Ingen sådan tagg"
+
+#: taguette/web/api.py:540
+msgid "Empty highlight"
+msgstr ""
+
+#: taguette/web/api.py:587 taguette/web/api.py:674
+msgid "No such highlight"
+msgstr "Ingen sådan markering"
+
+#: taguette/web/api.py:843
+msgid "There must be one admin"
+msgstr "Det måste finnas en administratör"
+
+#: taguette/web/api.py:899
+msgid ""
+"This database is an unknown version. It might have been written by a more"
+" recent version of Taguette, please check for updates"
+msgstr ""
+"Denna databas är en okänd version. Det kan ha skrivits av en nyare "
+"version av Taguette, se efter uppdateringar"
+
+#: taguette/web/api.py:905
+msgid "This database could not be updated to the current version"
+msgstr "Denna databas kunde inte uppdateras till den aktuella versionen"
+
+#: taguette/web/api.py:909 taguette/web/api.py:943
+msgid "This is not a Taguette project file"
+msgstr "Detta är inte en projektfil av Taguette"
+
+#: taguette/import_codebook.py:38
+msgid "Invalid file: CSV expected"
+msgstr "Ogiltig fil: CSV förväntad"
+
+#: taguette/import_codebook.py:45
+msgid "Not sure which column to use for tag name"
+msgstr "Osäker på vilken kolumn som ska användas för taggnamn"
+
+#: taguette/import_codebook.py:48
+msgid "No 'tag', 'name', or 'path' column"
+msgstr "Ingen kolumn för \"tagg\", \"namn\" eller \"sökväg\"."
+
+#: taguette/import_codebook.py:74
+msgid "Not enough columns"
+msgstr "Inte tillräckligt med kolumner"
+
+#: taguette/import_codebook.py:79
+msgid "Empty tag name"
+msgstr "Tomt taggnamn"
+
+#: taguette/import_codebook.py:86
+msgid "Invalid CSV file"
+msgstr "Ogiltig CSV-fil"
 
 #: taguette/validate.py:18
 msgid "Description is too long"
@@ -185,204 +402,58 @@ msgstr ""
 msgid "Invalid file name"
 msgstr ""
 
-#: taguette/import_codebook.py:34
-msgid "Invalid file: CSV expected"
-msgstr "Ogiltig fil: CSV förväntad"
-
-#: taguette/import_codebook.py:41
-msgid "Not sure which column to use for tag name"
-msgstr "Osäker på vilken kolumn som ska användas för taggnamn"
-
-#: taguette/import_codebook.py:44
-msgid "No 'tag', 'name', or 'path' column"
-msgstr "Ingen kolumn för \"tagg\", \"namn\" eller \"sökväg\"."
-
-#: taguette/import_codebook.py:70
-msgid "Not enough columns"
-msgstr "Inte tillräckligt med kolumner"
-
-#: taguette/import_codebook.py:75
-msgid "Empty tag name"
-msgstr "Tomt taggnamn"
-
-#: taguette/import_codebook.py:82
-msgid "Invalid CSV file"
-msgstr "Ogiltig CSV-fil"
-
-#: taguette/database/__init__.py:136
-msgid ""
-"\n"
-"    The database schema used by Taguette has changed! We will try to\n"
-"    update your workspace automatically.\n"
-msgstr ""
-"\n"
-"Databasschemat som används av Taguette har ändrats! Vi ska försöka\n"
-"uppdatera din arbetsyta automatiskt.\n"
-
-#: taguette/database/__init__.py:148
-#, python-format
-msgid ""
-"\n"
-"    A backup copy of your database file has been created. If the update\n"
-"    goes horribly wrong, make sure to keep that file, and let us know:\n"
-"    %(backup)s\n"
-msgstr ""
-"\n"
-"   En säkerhetskopia av din databasfil har skapats. Om uppdateringen\n"
-"   går fruktansvärt fel, se till att behålla den filen och låt oss veta:\n"
-"   %(backup)s\n"
-
-#: taguette/database/__init__.py:160
-#, python-format
-msgid ""
-"\n"
-"    The database schema used by Taguette has changed! Because you are not using\n"
-"    SQLite, we will not attempt a migration automatically; back up your data and\n"
-"    use `taguette --database=%(url)s migrate` if you want to proceed."
-msgstr ""
-"\n"
-"Databasschemat som används av Taguette har ändrats! Eftersom du inte använder SQLite, kommer vi           inte att försöka migrera automatiskt; säkerhetskopiera dina data och använd `taguette --database=%(url)s migrate` om du vill fortsätta."
-
-#: taguette/web/api.py:52
-msgid "Not logged in"
-msgstr "Ej inloggad"
-
-#: taguette/web/api.py:82 taguette/web/api.py:113 taguette/web/api.py:208
-#: taguette/web/api.py:247 taguette/web/api.py:312 taguette/web/api.py:347
-#: taguette/web/api.py:383 taguette/web/api.py:408 taguette/web/api.py:464
-#: taguette/web/api.py:523 taguette/web/api.py:609 taguette/web/api.py:715
-msgid "Unauthorized"
-msgstr "Obehörig"
-
-#: taguette/web/api.py:352 taguette/web/api.py:386 taguette/web/api.py:418
-#: taguette/web/api.py:477 taguette/web/api.py:553
-msgid "No such tag"
-msgstr "Ingen sådan tagg"
-
-#: taguette/web/api.py:481
-msgid "Empty highlight"
-msgstr ""
-
-#: taguette/web/api.py:527 taguette/web/api.py:612
-msgid "No such highlight"
-msgstr "Ingen sådan markering"
-
-#: taguette/web/api.py:778
-msgid "There must be one admin"
-msgstr "Det måste finnas en administratör"
-
-#: taguette/web/api.py:833
-msgid ""
-"This database is an unknown version. It might have been written by a more "
-"recent version of Taguette, please check for updates"
-msgstr ""
-"Denna databas är en okänd version. Det kan ha skrivits av en nyare version "
-"av Taguette, se efter uppdateringar"
-
-#: taguette/web/api.py:839
-msgid "This database could not be updated to the current version"
-msgstr "Denna databas kunde inte uppdateras till den aktuella versionen"
-
-#: taguette/web/api.py:843 taguette/web/api.py:877
-msgid "This is not a Taguette project file"
-msgstr "Detta är inte en projektfil av Taguette"
-
-#: taguette/web/__init__.py:60 taguette/web/base.py:576
+#: taguette/templates/account.html:4
 msgctxt "page title"
-msgid "Error 404"
-msgstr "Error 404"
+msgid "Account settings"
+msgstr "Kontoinställningar"
 
-#: taguette/web/__init__.py:61 taguette/web/base.py:577
-msgid "This page does not exist."
-msgstr "Den här sidan finns inte."
+#: taguette/templates/account.html:7
+msgctxt "title"
+msgid "Account settings"
+msgstr "Kontoinställningar"
 
-#: taguette/web/views.py:137
-msgid "Invalid login or password"
-msgstr "Ogiltigt användarnamn eller lösenord"
+#: taguette/templates/account.html:14 taguette/templates/login.html:28
+#: taguette/templates/login.html:59
+msgctxt "form label for user name"
+msgid "Login"
+msgstr "Inlogg"
 
-#: taguette/web/views.py:184 taguette/web/views.py:267
-#: taguette/web/views.py:423
-msgid "Passwords do not match"
-msgstr "Lösenorden matchar inte"
+#: taguette/templates/account.html:20 taguette/templates/login.html:78
+#: taguette/templates/reset_password.html:17
+msgctxt "form label for email address"
+msgid "Email"
+msgstr "Email"
 
-#: taguette/web/views.py:186
-msgid "User name is taken"
-msgstr "Upptaget användarnamn"
-
-#: taguette/web/views.py:193
-msgid "Email address is already used"
-msgstr "E-postadressen används redan"
-
-#: taguette/web/views.py:203
-msgid "Terms of Service must be accepted"
-msgstr "Användarvillkoren måste accepteras"
-
-#: taguette/web/views.py:305
-msgid "This email address is not associated with any user"
-msgstr "Denna e-postadress är inte kopplad till någon användare"
-
-#: taguette/web/views.py:334
-msgid "Password reset for Taguette"
-msgstr "Lösenordsåterställning för Taguette"
-
-#: taguette/web/views.py:380
-msgid "Invalid token"
-msgstr "Ogiltig token"
-
-#: taguette/web/views.py:384
-msgid "No user associated with that token"
-msgstr "Token ej kopplad till en användare"
-
-#: taguette/web/views.py:387
-msgid "Password has already been changed"
-msgstr "Lösenordet har redan ändrats"
-
-#. Default tag name
-#: taguette/web/views.py:466
-msgid "interesting"
-msgstr "Intressant"
-
-#. Default tag description
-#: taguette/web/views.py:468
-msgid "Further review required"
-msgstr "Ytterligare granskning krävs"
-
-#: taguette/web/views.py:503
-msgid "You don't have permission to delete this project"
-msgstr "Du har inte behörighet att ta bort det här projektet"
-
-#: taguette/web/views.py:537 taguette/web/views.py:564
-msgid "You don't have permission to import a codebook"
-msgstr "Du har inte behörighet att importera en kodbok"
-
-#: taguette/web/views.py:583
-#, python-format
-msgid "Row %d: %s"
-msgstr "Rad %d: %s"
-
-#: taguette/web/views.py:701
-msgid "Error importing tags, concurrent changes caused a conflict"
-msgstr "Fel vid import av taggar, samtidiga ändringar orsakade en konflikt"
-
-#: taguette/web/views.py:716
-msgid "No file provided"
-msgstr "Ingen fil försedd"
-
-#: taguette/web/base.py:468
+#: taguette/templates/account.html:23 taguette/templates/login.html:81
 msgid ""
-" | Please report issues via <a "
-"href=\"https://gitlab.com/remram44/taguette\">GitLab</a> or <a "
-"href=\"mailto:hi@taguette.org\">hi@taguette.org</a>!"
+"Optional. <em>We will not share your email with anyone. This is only used"
+" in case you forget your password.</em>"
 msgstr ""
-" | Vänligen rapportera problem via <a "
-"href=\"https://gitlab.com/remram44/taguette\">GitLab</a> eller<a "
-"href=\"mailto:hi@taguette.org\">hi@taguette.org</a>!"
+"Frivilligt. <em>Vi kommer inte att dela din e-post med någon. Detta "
+"används endast om du skulle glömma ditt lösenord.</em>"
 
-#: taguette/web/base.py:583
-#, python-format
-msgctxt "page title"
-msgid "Error %d"
-msgstr "Error %d"
+#: taguette/templates/account.html:27
+msgctxt "form label for language selection"
+msgid "Language"
+msgstr "Språk"
+
+#: taguette/templates/account.html:30
+msgctxt "language selection option"
+msgid "Auto-detect"
+msgstr "Autoupptäck"
+
+#: taguette/templates/account.html:38
+msgid "New password"
+msgstr "Nytt lösenord"
+
+#: taguette/templates/account.html:44
+msgid "Repeat new password"
+msgstr "Upprepa lösenord"
+
+#: taguette/templates/account.html:51
+msgctxt "form submit button"
+msgid "Update"
+msgstr "Uppdatera"
 
 #: taguette/templates/project_new.html:3
 msgctxt "page title"
@@ -409,11 +480,6 @@ msgctxt "form submit button"
 msgid "Create"
 msgstr "Skapa"
 
-#: taguette/templates/tos.html:4
-msgctxt "page title"
-msgid "Terms of Service"
-msgstr "Användarvillkor"
-
 #: taguette/templates/project_import_codebook.html:3
 #: taguette/templates/project_import_codebook_confirm.html:3
 msgctxt "page title"
@@ -432,15 +498,169 @@ msgid ""
 "Use this form to import an existing codebook into your project. Existing "
 "tags will not be deleted, new tags will be added alongside them."
 msgstr ""
-"Använd det här formuläret för att importera en befintlig kodbok till ditt "
-"projekt. Befintliga taggar kommer inte att raderas, nya taggar läggs till "
-"bredvid dem."
+"Använd det här formuläret för att importera en befintlig kodbok till ditt"
+" projekt. Befintliga taggar kommer inte att raderas, nya taggar läggs "
+"till bredvid dem."
+
+#: taguette/templates/project_import_codebook_confirm.html:11
+msgid "You are about to create the following tags:"
+msgstr "Du håller på att skapa följande taggar:"
+
+#: taguette/templates/project_import_codebook_confirm.html:19
+msgctxt "codebook import tag option"
+msgid "Replace"
+msgstr "Ersätt"
+
+#: taguette/templates/project_import_codebook_confirm.html:22
+msgctxt "codebook import tag option"
+msgid "Import"
+msgstr "Importera"
+
+#: taguette/templates/project_import_codebook_confirm.html:36
+msgctxt "form submit button"
+msgid "Create tags"
+msgstr "Skapa taggar"
+
+#: taguette/templates/project_delete.html:14
+#: taguette/templates/project_import_codebook.html:30
+#: taguette/templates/project_import_codebook_confirm.html:37
+msgctxt "cancel button"
+msgid "Go back"
+msgstr "Gå tillbaka"
+
+#: taguette/templates/tos.html:4
+msgctxt "page title"
+msgid "Terms of Service"
+msgstr "Användarvillkor"
+
+#: taguette/templates/login.html:3
+msgctxt "page title"
+msgid "Log in"
+msgstr "Logga in"
+
+#: taguette/templates/login.html:9
+msgctxt "tab"
+msgid "Log in"
+msgstr "Logga in"
+
+#: taguette/templates/login.html:12
+msgctxt "tab"
+msgid "Register"
+msgstr "Registrera"
+
+#: taguette/templates/login.html:34 taguette/templates/login.html:66
+#: taguette/templates/new_password.html:15
+msgctxt "form label"
+msgid "Password"
+msgstr "Lösenord"
+
+#: taguette/templates/login.html:41
+msgctxt "form submit button"
+msgid "Log in"
+msgstr "Logga in"
+
+#: taguette/templates/login.html:42
+msgctxt "form link"
+msgid "Forgot password"
+msgstr "Glömt lösenord"
+
+#: taguette/templates/login.html:62
+msgid "Please use only letters, numbers, dot, underscore, and dashes (._-)"
+msgstr ""
+
+#: taguette/templates/login.html:72 taguette/templates/new_password.html:21
+msgctxt "form label"
+msgid "Confirm password"
+msgstr "Bekräfta lösenord"
+
+#: taguette/templates/login.html:86
+msgctxt "link from registration form"
+msgid "Terms of service"
+msgstr "Användarvillkor"
+
+#: taguette/templates/login.html:90
+#, python-format
+msgid "I accept the <a href=\"%(url)s\">terms of service</a>"
+msgstr "Jag accepterar <a href=\"%(url)s\">användarvillkoren</a>"
+
+#: taguette/templates/login.html:97
+msgctxt "form submit button"
+msgid "Register"
+msgstr "Registrera"
+
+#: taguette/templates/new_password.html:3
+#: taguette/templates/reset_password.html:3
+msgctxt "page title"
+msgid "Reset password"
+msgstr "Återställ lösenord"
+
+#: taguette/templates/new_password.html:10
+msgid "Please enter a new password below:"
+msgstr "Vänligen ange ett nytt lösenord nedan:"
+
+#: taguette/templates/new_password.html:28
+msgctxt "form submit button"
+msgid "Set new password"
+msgstr "Ange nytt lösenord"
+
+#: taguette/templates/export_highlights.html:6
+#: taguette/templates/export_highlights.html:18
+#, python-format
+msgctxt "exported highlights document title"
+msgid "Taguette highlights: %(path)s"
+msgstr "Taguette markeringar: %(path)s"
+
+#: taguette/templates/export_highlights.html:8
+#: taguette/templates/export_highlights.html:20
+msgctxt "exported highlights document title"
+msgid "Taguette highlights"
+msgstr "Taguette markeringar"
+
+#: taguette/templates/export_highlights.html:25
+#, python-format
+msgctxt "exported highlight details"
+msgid "<strong>Document:</strong> %(doc)s"
+msgstr "<strong>Dokument:</strong> %(doc)s"
+
+#: taguette/templates/export_highlights.html:26
+msgctxt "exported highlight details"
+msgid "Tags:"
+msgstr "Taggar:"
+
+#: taguette/templates/project_import.html:3
+msgctxt "page title"
+msgid "Import project"
+msgstr "Importera projekt"
+
+#: taguette/templates/project_import.html:6
+msgctxt "title"
+msgid "Import a project"
+msgstr "Importera ett projekt"
+
+#: taguette/templates/project_import.html:11
+msgctxt "form label for project file"
+msgid "File:"
+msgstr "Fil:"
+
+#: taguette/templates/project_import.html:17
+msgctxt "form label for project dropdown"
+msgid "Project:"
+msgstr "Projekt:"
+
+#: taguette/templates/project_import.html:20
+msgid "No file selected..."
+msgstr "Ingen fil vald..."
+
+#: taguette/templates/project_import.html:25
+msgctxt "form submit button"
+msgid "Import project"
+msgstr "Importera projekt"
 
 #: taguette/templates/project_import_codebook.html:8
 msgid ""
-"The file should have a column for the tag names, called 'name' or 'tag' or "
-"'path'. It can also optionally have a column called 'description'. Other "
-"columns are ignored."
+"The file should have a column for the tag names, called 'name' or 'tag' "
+"or 'path'. It can also optionally have a column called 'description'. "
+"Other columns are ignored."
 msgstr ""
 
 #: taguette/templates/project_import_codebook.html:15
@@ -462,142 +682,36 @@ msgctxt "form submit button"
 msgid "Review"
 msgstr "Granska"
 
-#: taguette/templates/project_delete.html:14
-#: taguette/templates/project_import_codebook.html:30
-#: taguette/templates/project_import_codebook_confirm.html:37
-msgctxt "cancel button"
-msgid "Go back"
-msgstr "Gå tillbaka"
-
-#: taguette/templates/index.html:10
-#, python-format
-msgid "Welcome %(user_login)s"
-msgstr "Välkommen %(user_login)s"
-
-#: taguette/templates/index.html:12
-msgid "Welcome!"
-msgstr "Välkommen!"
-
-#: taguette/templates/index.html:14
-msgid "Here are your projects:"
-msgstr "Dina projekt:"
-
-#: taguette/templates/index.html:19
-msgid "You have no projects yet."
-msgstr "Du har inga projekt ännu."
-
-#: taguette/templates/index.html:21
-msgctxt "button in project list"
-msgid "Create a new project"
-msgstr "Skapa ett nytt projekt"
-
-#: taguette/templates/index.html:23
-msgctxt "button in project list"
-msgid "Import a project file"
-msgstr "Importera en projektfil"
-
-#: taguette/templates/token_needed.html:3
+#: taguette/templates/cookies_prompt.html:3
 msgctxt "page title"
-msgid "Error"
-msgstr "Fel"
+msgid "Cookie warning"
+msgstr "Cookie-varning"
 
-#: taguette/templates/token_needed.html:6
-msgid ""
-"Your browser did not supply a secret token to authenticate with the "
-"application. Please check the console for the correct URL to log in, or "
-"simply restart Taguette."
-msgstr ""
-"Din webbläsare tillhandahöll inte en hemlig token för att autentisera med "
-"programmet. Kontrollera konsolen efter rätt URL för att logga in, eller "
-"starta om Taguette."
-
-#: taguette/templates/welcome.html:4
-msgctxt "page title"
-msgid "Welcome"
-msgstr "Välkommen"
-
-#: taguette/templates/welcome.html:8
+#: taguette/templates/cookies_prompt.html:6
 msgctxt "title"
-msgid "Welcome"
-msgstr "Välkommen"
+msgid "Cookie warning"
+msgstr "Cookie-varning"
 
-#: taguette/templates/welcome.html:9
+#: taguette/templates/cookies_prompt.html:7
 msgid ""
-"<span style=\"font-family:BadScript;\"><a "
-"href=\"https://www.taguette.org/\">TAGUETTE</a></span> is an open-source "
-"web-based document tagging tool for qualitative data analysis."
+"This website uses cookies to store your identity (if you choose to log "
+"in) and as a protection against <a href=\"https://en.wikipedia.org/wiki"
+"/Cross-site_request_forgery\">cross-site request forgery (CSRF)</a>. "
+"Before continuing, you must accept their use by clicking the button "
+"below. Those <strong>are not</strong> \"third-party\" or \"tracking\" "
+"cookies."
 msgstr ""
-"<span style=\"font-family:BadScript;\"><a "
-"href=\"https://www.taguette.org/\">TAGUETTE</a></span> är ett webbaserat "
-"dokumenttaggningsverktyg med öppen källkod för kvalitativ dataanalys."
+"Denna webbplats använder cookies för att lagra din identitet (om du "
+"väljer att logga in) och som ett skydd mot <a "
+"href=\"https://en.wikipedia.org/wiki/Cross-site_request_forgery\">cross-"
+"site request forgery (CSRF)</a>. Innan du fortsätter måste du acceptera "
+"deras användning genom att klicka på knappen nedan. Dessa <strong>är "
+"inte</strong> \"tredjeparts\" eller \"spårnings\" cookies."
 
-#: taguette/templates/welcome.html:10
-msgid ""
-"Using this tool, you can upload a collection of documents, create a "
-"hierarchy of tags, and annotate portions of documents with tags and notes "
-"that you can recall and organize later."
-msgstr ""
-"Med det här verktyget kan du ladda upp en samling dokument, skapa en "
-"hierarki av taggar och kommentera delar av dokument med taggar och "
-"anteckningar som du kan återvända till och organisera senare."
-
-#: taguette/templates/welcome.html:12
-#, python-format
-msgid "<a href=\"%(url)s\">Register now</a> for free and get started!"
-msgstr "<a href=\"%(url)s\">Registrera dig nu</a> och kom igång!"
-
-#: taguette/templates/email_reset_password.html:1
-#, python-format
-msgid ""
-"Someone has requested to reset the password on the Taguette account "
-"associated with this email. If this was you, please follow this link: <a "
-"href=\"%(link)s\">%(link)s</a>"
-msgstr ""
-"Någon har begärt att få återställa lösenordet på Taguette-kontot som är "
-"kopplat till denna mail. Om det här var du, följ länken: <a "
-"href=\"%(link)s\">%(link)s</a>"
-
-#: taguette/templates/email_reset_password.html:3
-#, python-format
-msgid "Your user name is: <strong>%(login)s</strong>"
-msgstr "Ditt användarnamn: <strong>%(login)s</strong>"
-
-#: taguette/templates/email_reset_password.html:5
-msgid "This link will expire in 1 day."
-msgstr "Den här länken upphör att gälla om 1 dag."
-
-#: taguette/templates/new_password.html:3
-#: taguette/templates/reset_password.html:3
-msgctxt "page title"
-msgid "Reset password"
-msgstr "Återställ lösenord"
-
-#: taguette/templates/reset_password.html:13
-msgid ""
-"If you had set an email address in your profile, you can enter it below and "
-"a link to reset your password will be sent to you."
-msgstr ""
-"Om du hade angett en e-postadress i din profil kan du ange den nedan och en "
-"länk för att återställa ditt lösenord kommer att skickas till dig."
-
-#: taguette/templates/account.html:20 taguette/templates/login.html:78
-#: taguette/templates/reset_password.html:17
-msgctxt "form label for email address"
-msgid "Email"
-msgstr "Email"
-
-#: taguette/templates/reset_password.html:22
-msgctxt "password reset form submit button"
-msgid "Send"
-msgstr "Skicka"
-
-#: taguette/templates/reset_password.html:26
-msgid ""
-"If you didn't set an email address, you can try contacting your server "
-"administrator."
-msgstr ""
-"Om du inte har angett en e-postadress kan du försöka kontakta din "
-"serveradministratör."
+#: taguette/templates/cookies_prompt.html:12
+msgctxt "button on cookie warning page"
+msgid "Accept cookies"
+msgstr "Acceptera cookies"
 
 #. Left pane tab, keep short
 #: taguette/templates/project.html:16
@@ -676,7 +790,7 @@ msgid "Add a document"
 msgstr "Lägg till dokument"
 
 #: taguette/templates/project.html:80 taguette/templates/project.html:105
-#: taguette/templates/project.html:285
+#: taguette/templates/project.html:318
 msgid "Loading..."
 msgstr "Laddar..."
 
@@ -704,7 +818,7 @@ msgstr ""
 msgid "See all highlights"
 msgstr "Se alla markeringar"
 
-#: taguette/templates/project.html:101 taguette/templates/project.html:286
+#: taguette/templates/project.html:101 taguette/templates/project.html:319
 msgid "Create a tag"
 msgstr "Skapa tagg"
 
@@ -712,423 +826,202 @@ msgstr "Skapa tagg"
 msgid "Export this view"
 msgstr "Exportera vy"
 
-#: taguette/templates/project.html:131
+#: taguette/templates/project.html:133
+#, fuzzy
+msgid "Edit content"
+msgstr "Ändra dokument"
+
+#: taguette/templates/project.html:134
+msgid "Save"
+msgstr ""
+
+#: taguette/templates/project.html:135 taguette/templates/project.html:205
+#: taguette/templates/project.html:248 taguette/templates/project.html:357
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: taguette/templates/project.html:136
+msgid ""
+"This document has highlights: you can only add or change text after the "
+"last highlighted passage"
+msgstr ""
+
+#: taguette/templates/project.html:140
+msgid "Filter by tags"
+msgstr ""
+
+#: taguette/templates/project.html:144
+msgid "Must have tags"
+msgstr ""
+
+#: taguette/templates/project.html:145 taguette/templates/project.html:152
+#, fuzzy
+msgid "Select tags..."
+msgstr "Ta bort tagg"
+
+#: taguette/templates/project.html:151
+msgid "Must NOT have tags"
+msgstr ""
+
+#: taguette/templates/project.html:160
 msgid "Load a document on the left"
 msgstr "Ladda ett dokument till vänster"
 
-#: taguette/templates/project.html:143
+#: taguette/templates/project.html:172
 msgid "Manage Collaborators"
 msgstr "Hantera Medarbetare"
 
-#: taguette/templates/project.html:150
+#: taguette/templates/project.html:179
 msgctxt "modal window title"
 msgid "Add Collaborators"
 msgstr "Lägg Till Medarbetare"
 
-#: taguette/templates/project.html:155
+#: taguette/templates/project.html:184
 msgctxt "project members form placeholder"
 msgid "Username"
 msgstr "Användarnamn"
 
-#: taguette/templates/project.html:159
+#: taguette/templates/project.html:188
 msgctxt "permission level"
 msgid "Full permissions"
 msgstr "Fullständiga behörigheter"
 
-#: taguette/templates/project.html:160
+#: taguette/templates/project.html:189
 msgctxt "permission level"
 msgid "Can't change collaborators / delete project"
 msgstr "Det går inte att ändra medarbetare / ta bort projekt"
 
-#: taguette/templates/project.html:161
+#: taguette/templates/project.html:190
 msgctxt "permission level"
 msgid "View & make changes"
 msgstr "Visa & gör ändringar"
 
-#: taguette/templates/project.html:162
+#: taguette/templates/project.html:191
 msgctxt "permission level"
 msgid "View only"
 msgstr "Visa bara"
 
-#: taguette/templates/project.html:165
+#: taguette/templates/project.html:194
 msgctxt "form submit button"
 msgid "Add to project"
 msgstr "Lägg till i projekt"
 
-#: taguette/templates/project.html:169
+#: taguette/templates/project.html:198
 msgid "Current Collaborators"
 msgstr "Aktuella medarbetare"
 
-#: taguette/templates/project.html:175 taguette/templates/project.html:259
-#: taguette/templates/project.html:291 taguette/templates/project.html:318
+#: taguette/templates/project.html:204 taguette/templates/project.html:292
+#: taguette/templates/project.html:328 taguette/templates/project.html:356
 msgid "Save & Close"
 msgstr "Spara & Stäng"
 
-#: taguette/templates/project.html:176 taguette/templates/project.html:219
-#: taguette/templates/project.html:319
-msgid "Cancel"
-msgstr "Avbryt"
-
-#: taguette/templates/project.html:187
+#: taguette/templates/project.html:216
 msgctxt "modal window title"
 msgid "Add a document"
 msgstr "Lägg till dokument"
 
-#: taguette/templates/project.html:196
+#: taguette/templates/project.html:225
 msgctxt "form placeholder"
 msgid "Enter a document name"
 msgstr "Ange ett dokumentnamn"
 
-#: taguette/templates/project.html:206 taguette/templates/project.html:247
+#: taguette/templates/project.html:235 taguette/templates/project.html:276
 msgid "Left to right"
 msgstr "Vänster till höger"
 
-#: taguette/templates/project.html:210 taguette/templates/project.html:251
+#: taguette/templates/project.html:239 taguette/templates/project.html:280
 msgid "Right to left"
 msgstr "Höger till vänster"
 
-#: taguette/templates/project.html:214
+#: taguette/templates/project.html:243
 msgctxt "document add form placeholder"
 msgid "Description"
 msgstr "Beskrivning"
 
-#: taguette/templates/project.html:218
+#: taguette/templates/project.html:247
 msgctxt "submit button"
 msgid "Import"
 msgstr "Importera"
 
-#: taguette/templates/project.html:230
+#: taguette/templates/project.html:259
 msgctxt "modal window title"
 msgid "Edit document"
 msgstr "Ändra dokument"
 
-#: taguette/templates/project.html:240
+#: taguette/templates/project.html:269
 msgctxt "document change form placeholder"
 msgid "Name"
 msgstr "Namn"
 
-#: taguette/templates/project.html:255
+#: taguette/templates/project.html:284
 msgctxt "document change form placeholder"
 msgid "Description"
 msgstr "Beskrivning"
 
-#: taguette/templates/project.html:260
+#: taguette/templates/project.html:286
+#, fuzzy
+msgid "Document tags"
+msgstr "Dokument"
+
+#: taguette/templates/project.html:293
 msgid "Delete document"
 msgstr "Ta bort dokument"
 
-#: taguette/templates/project.html:271
+#: taguette/templates/project.html:304
 msgctxt "modal window title"
 msgid "Highlight"
 msgstr "Markering"
 
-#: taguette/templates/project.html:292
+#: taguette/templates/project.html:323
+msgid "Contexte"
+msgstr ""
+
+#: taguette/templates/project.html:324
+msgid "Ajoutez un contexte à cette annotation..."
+msgstr ""
+
+#: taguette/templates/project.html:329
 msgid "Delete highlight"
 msgstr "Ta bort markering"
 
-#: taguette/templates/project.html:303
+#: taguette/templates/project.html:340
 msgctxt "modal window title"
 msgid "New tag"
 msgstr "Ny tagg"
 
-#: taguette/templates/project.html:304
+#: taguette/templates/project.html:341
 msgctxt "modal window title"
 msgid "Change tag"
 msgstr "Ändra tagg"
 
-#: taguette/templates/project.html:312
+#: taguette/templates/project.html:349
 msgctxt "tag change form placeholder"
 msgid "Name"
 msgstr "Namn"
 
-#: taguette/templates/project.html:313
+#: taguette/templates/project.html:350
 msgctxt "tag change form placeholder"
 msgid "Description"
 msgstr "Beskrivning"
 
-#: taguette/templates/project.html:317
+#: taguette/templates/project.html:351
+msgid ""
+"Tags starting with <strong>@</strong> (e.g. <code>@todo</code>) are "
+"treated as temporary — their highlights appear in grey instead of yellow."
+msgstr ""
+
+#: taguette/templates/project.html:355
 msgctxt "button in tag change modal window"
 msgid "Merge..."
 msgstr "Sammanfoga..."
 
-#: taguette/templates/project.html:320
+#: taguette/templates/project.html:358
 msgid "Delete tag"
 msgstr "Ta bort tagg"
 
-#: taguette/templates/project.html:385
+#: taguette/templates/project.html:423
 msgid "<em>n</em>ew highlight <span class=\"sr-only\">(shortcut: n)</span>"
 msgstr "<em>n</em>y markering <span class=\"sr-only\">(genväg: n)</span>"
-
-#: taguette/templates/export_codebook.html:10
-#: taguette/templates/export_codebook.html:13
-msgctxt "exported codebook document title"
-msgid "Taguette Codebook"
-msgstr "Taguette Kodbok"
-
-#: taguette/templates/export_codebook.html:16
-#, python-format
-msgid "%(number)d highlight"
-msgid_plural "%(number)d highlights"
-msgstr[0] "%(number)d markering"
-msgstr[1] "%(number)d markeringar"
-
-#: taguette/templates/login.html:3
-msgctxt "page title"
-msgid "Log in"
-msgstr "Logga in"
-
-#: taguette/templates/login.html:9
-msgctxt "tab"
-msgid "Log in"
-msgstr "Logga in"
-
-#: taguette/templates/login.html:12
-msgctxt "tab"
-msgid "Register"
-msgstr "Registrera"
-
-#: taguette/templates/account.html:14 taguette/templates/login.html:28
-#: taguette/templates/login.html:59
-msgctxt "form label for user name"
-msgid "Login"
-msgstr "Inlogg"
-
-#: taguette/templates/login.html:34 taguette/templates/login.html:66
-#: taguette/templates/new_password.html:15
-msgctxt "form label"
-msgid "Password"
-msgstr "Lösenord"
-
-#: taguette/templates/login.html:41
-msgctxt "form submit button"
-msgid "Log in"
-msgstr "Logga in"
-
-#: taguette/templates/login.html:42
-msgctxt "form link"
-msgid "Forgot password"
-msgstr "Glömt lösenord"
-
-#: taguette/templates/login.html:62
-msgid "Please use only letters, numbers, dot, underscore, and dashes (._-)"
-msgstr ""
-
-#: taguette/templates/login.html:72 taguette/templates/new_password.html:21
-msgctxt "form label"
-msgid "Confirm password"
-msgstr "Bekräfta lösenord"
-
-#: taguette/templates/account.html:23 taguette/templates/login.html:81
-msgid ""
-"Optional. <em>We will not share your email with anyone. This is only used in"
-" case you forget your password.</em>"
-msgstr ""
-"Frivilligt. <em>Vi kommer inte att dela din e-post med någon. Detta används "
-"endast om du skulle glömma ditt lösenord.</em>"
-
-#: taguette/templates/login.html:86
-msgctxt "link from registration form"
-msgid "Terms of service"
-msgstr "Användarvillkor"
-
-#: taguette/templates/login.html:90
-#, python-format
-msgid "I accept the <a href=\"%(url)s\">terms of service</a>"
-msgstr "Jag accepterar <a href=\"%(url)s\">användarvillkoren</a>"
-
-#: taguette/templates/login.html:97
-msgctxt "form submit button"
-msgid "Register"
-msgstr "Registrera"
-
-#: taguette/templates/cookies_prompt.html:3
-msgctxt "page title"
-msgid "Cookie warning"
-msgstr "Cookie-varning"
-
-#: taguette/templates/cookies_prompt.html:6
-msgctxt "title"
-msgid "Cookie warning"
-msgstr "Cookie-varning"
-
-#: taguette/templates/cookies_prompt.html:7
-msgid ""
-"This website uses cookies to store your identity (if you choose to log in) "
-"and as a protection against <a href=\"https://en.wikipedia.org/wiki/Cross-"
-"site_request_forgery\">cross-site request forgery (CSRF)</a>. Before "
-"continuing, you must accept their use by clicking the button below. Those "
-"<strong>are not</strong> \"third-party\" or \"tracking\" cookies."
-msgstr ""
-"Denna webbplats använder cookies för att lagra din identitet (om du väljer "
-"att logga in) och som ett skydd mot <a "
-"href=\"https://en.wikipedia.org/wiki/Cross-site_request_forgery\">cross-site"
-" request forgery (CSRF)</a>. Innan du fortsätter måste du acceptera deras "
-"användning genom att klicka på knappen nedan. Dessa <strong>är inte</strong>"
-" \"tredjeparts\" eller \"spårnings\" cookies."
-
-#: taguette/templates/cookies_prompt.html:12
-msgctxt "button on cookie warning page"
-msgid "Accept cookies"
-msgstr "Acceptera cookies"
-
-#: taguette/templates/project_import.html:3
-msgctxt "page title"
-msgid "Import project"
-msgstr "Importera projekt"
-
-#: taguette/templates/project_import.html:6
-msgctxt "title"
-msgid "Import a project"
-msgstr "Importera ett projekt"
-
-#: taguette/templates/project_import.html:11
-msgctxt "form label for project file"
-msgid "File:"
-msgstr "Fil:"
-
-#: taguette/templates/project_import.html:17
-msgctxt "form label for project dropdown"
-msgid "Project:"
-msgstr "Projekt:"
-
-#: taguette/templates/project_import.html:20
-msgid "No file selected..."
-msgstr "Ingen fil vald..."
-
-#: taguette/templates/project_import.html:25
-msgctxt "form submit button"
-msgid "Import project"
-msgstr "Importera projekt"
-
-#: taguette/templates/project_import_codebook_confirm.html:11
-msgid "You are about to create the following tags:"
-msgstr "Du håller på att skapa följande taggar:"
-
-#: taguette/templates/project_import_codebook_confirm.html:19
-msgctxt "codebook import tag option"
-msgid "Replace"
-msgstr "Ersätt"
-
-#: taguette/templates/project_import_codebook_confirm.html:22
-msgctxt "codebook import tag option"
-msgid "Import"
-msgstr "Importera"
-
-#: taguette/templates/project_import_codebook_confirm.html:36
-msgctxt "form submit button"
-msgid "Create tags"
-msgstr "Skapa taggar"
-
-#: taguette/templates/account.html:4
-msgctxt "page title"
-msgid "Account settings"
-msgstr "Kontoinställningar"
-
-#: taguette/templates/account.html:7
-msgctxt "title"
-msgid "Account settings"
-msgstr "Kontoinställningar"
-
-#: taguette/templates/account.html:27
-msgctxt "form label for language selection"
-msgid "Language"
-msgstr "Språk"
-
-#: taguette/templates/account.html:30
-msgctxt "language selection option"
-msgid "Auto-detect"
-msgstr "Autoupptäck"
-
-#: taguette/templates/account.html:38
-msgid "New password"
-msgstr "Nytt lösenord"
-
-#: taguette/templates/account.html:44
-msgid "Repeat new password"
-msgstr "Upprepa lösenord"
-
-#: taguette/templates/account.html:51
-msgctxt "form submit button"
-msgid "Update"
-msgstr "Uppdatera"
-
-#: taguette/templates/export_highlights.html:6
-#: taguette/templates/export_highlights.html:18
-#, python-format
-msgctxt "exported highlights document title"
-msgid "Taguette highlights: %(path)s"
-msgstr "Taguette markeringar: %(path)s"
-
-#: taguette/templates/export_highlights.html:8
-#: taguette/templates/export_highlights.html:20
-msgctxt "exported highlights document title"
-msgid "Taguette highlights"
-msgstr "Taguette markeringar"
-
-#: taguette/templates/export_highlights.html:25
-#, python-format
-msgctxt "exported highlight details"
-msgid "<strong>Document:</strong> %(doc)s"
-msgstr "<strong>Dokument:</strong> %(doc)s"
-
-#: taguette/templates/export_highlights.html:26
-msgctxt "exported highlight details"
-msgid "Tags:"
-msgstr "Taggar:"
-
-#: taguette/templates/base.html:26
-msgctxt "navigation item"
-msgid "Home"
-msgstr "Hem"
-
-#: taguette/templates/base.html:37
-#, python-format
-msgctxt "navigation item"
-msgid "Taguette Guide %(external_icon)s"
-msgstr "Taguette Guide %(external_icon)s"
-
-#: taguette/templates/base.html:41
-msgid "Single-user mode"
-msgstr "Singelanvändarläge"
-
-#: taguette/templates/base.html:45
-msgctxt "navigation dropdown menu"
-msgid "Account"
-msgstr "Konto"
-
-#: taguette/templates/base.html:47
-msgctxt "navigation item"
-msgid "Settings"
-msgstr "Inställningar"
-
-#: taguette/templates/base.html:49
-msgctxt "navigation item"
-msgid "Terms of Service"
-msgstr "Användarvillkor"
-
-#: taguette/templates/base.html:51
-msgctxt "navigation item"
-msgid "Log out"
-msgstr "Logga ut"
-
-#: taguette/templates/base.html:56
-msgctxt "navigation item"
-msgid "Log in"
-msgstr "Logga in"
-
-#: taguette/templates/base.html:71
-#, python-format
-msgid ""
-"Taguette %(version)s is released under a <a "
-"href=\"https://gitlab.com/remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause"
-" license</a>, &#169; Rémi Rampin and Taguette contributors | <a "
-"href=\"https://www.taguette.org/getting-started.html\">User "
-"Documentation</a>"
-msgstr ""
-"Taguette %(version)s släpps under <a "
-"href=\"https://gitlab.com/remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause"
-" license</a>, &#169; Rémi Rampin and Taguette contributors | <a "
-"href=\"https://www.taguette.org/getting-"
-"started.html\">Användardokumentation</a>"
 
 #: taguette/templates/project_delete.html:3
 msgctxt "page title"
@@ -1150,8 +1043,8 @@ msgstr "Namn: %(project_name)s"
 #, python-format
 msgid ""
 "Are you sure you want to delete this project? It currently has "
-"<strong>%(documents)s documents and %(highlights)s highlights in %(tags)s "
-"tags</strong>. There is no way to undo."
+"<strong>%(documents)s documents and %(highlights)s highlights in %(tags)s"
+" tags</strong>. There is no way to undo."
 msgstr ""
 "Är du säker på att du vill ta bort projektet? Det har för närvarande "
 "<strong>%(documents)s dokument och %(highlights)s markeringar i %(tags)s "
@@ -1162,11 +1055,201 @@ msgctxt "submit button"
 msgid "Delete forever"
 msgstr "Ta bort för alltid"
 
-#: taguette/templates/new_password.html:10
-msgid "Please enter a new password below:"
-msgstr "Vänligen ange ett nytt lösenord nedan:"
+#: taguette/templates/email_reset_password.html:1
+#, python-format
+msgid ""
+"Someone has requested to reset the password on the Taguette account "
+"associated with this email. If this was you, please follow this link: <a "
+"href=\"%(link)s\">%(link)s</a>"
+msgstr ""
+"Någon har begärt att få återställa lösenordet på Taguette-kontot som är "
+"kopplat till denna mail. Om det här var du, följ länken: <a "
+"href=\"%(link)s\">%(link)s</a>"
 
-#: taguette/templates/new_password.html:28
-msgctxt "form submit button"
-msgid "Set new password"
-msgstr "Ange nytt lösenord"
+#: taguette/templates/email_reset_password.html:3
+#, python-format
+msgid "Your user name is: <strong>%(login)s</strong>"
+msgstr "Ditt användarnamn: <strong>%(login)s</strong>"
+
+#: taguette/templates/email_reset_password.html:5
+msgid "This link will expire in 1 day."
+msgstr "Den här länken upphör att gälla om 1 dag."
+
+#: taguette/templates/index.html:10
+#, python-format
+msgid "Welcome %(user_login)s"
+msgstr "Välkommen %(user_login)s"
+
+#: taguette/templates/index.html:12
+msgid "Welcome!"
+msgstr "Välkommen!"
+
+#: taguette/templates/index.html:14
+msgid "Here are your projects:"
+msgstr "Dina projekt:"
+
+#: taguette/templates/index.html:19
+msgid "You have no projects yet."
+msgstr "Du har inga projekt ännu."
+
+#: taguette/templates/index.html:21
+msgctxt "button in project list"
+msgid "Create a new project"
+msgstr "Skapa ett nytt projekt"
+
+#: taguette/templates/index.html:23
+msgctxt "button in project list"
+msgid "Import a project file"
+msgstr "Importera en projektfil"
+
+#: taguette/templates/welcome.html:4
+msgctxt "page title"
+msgid "Welcome"
+msgstr "Välkommen"
+
+#: taguette/templates/welcome.html:8
+msgctxt "title"
+msgid "Welcome"
+msgstr "Välkommen"
+
+#: taguette/templates/welcome.html:9
+msgid ""
+"<span style=\"font-family:BadScript;\"><a "
+"href=\"https://www.taguette.org/\">TAGUETTE</a></span> is an open-source "
+"web-based document tagging tool for qualitative data analysis."
+msgstr ""
+"<span style=\"font-family:BadScript;\"><a "
+"href=\"https://www.taguette.org/\">TAGUETTE</a></span> är ett webbaserat "
+"dokumenttaggningsverktyg med öppen källkod för kvalitativ dataanalys."
+
+#: taguette/templates/welcome.html:10
+msgid ""
+"Using this tool, you can upload a collection of documents, create a "
+"hierarchy of tags, and annotate portions of documents with tags and notes"
+" that you can recall and organize later."
+msgstr ""
+"Med det här verktyget kan du ladda upp en samling dokument, skapa en "
+"hierarki av taggar och kommentera delar av dokument med taggar och "
+"anteckningar som du kan återvända till och organisera senare."
+
+#: taguette/templates/welcome.html:12
+#, python-format
+msgid "<a href=\"%(url)s\">Register now</a> for free and get started!"
+msgstr "<a href=\"%(url)s\">Registrera dig nu</a> och kom igång!"
+
+#: taguette/templates/export_codebook.html:10
+#: taguette/templates/export_codebook.html:13
+msgctxt "exported codebook document title"
+msgid "Taguette Codebook"
+msgstr "Taguette Kodbok"
+
+#: taguette/templates/export_codebook.html:16
+#, python-format
+msgid "%(number)d highlight"
+msgid_plural "%(number)d highlights"
+msgstr[0] "%(number)d markering"
+msgstr[1] "%(number)d markeringar"
+
+#: taguette/templates/export_codebook.html:16
+msgctxt "separate number of highlights from number of documents"
+msgid "in"
+msgstr ""
+
+#: taguette/templates/export_codebook.html:16
+#, fuzzy, python-format
+msgid "%(number)d document"
+msgid_plural "%(number)d documents"
+msgstr[0] "Ändra dokument"
+msgstr[1] ""
+
+#: taguette/templates/base.html:27
+msgctxt "navigation item"
+msgid "Home"
+msgstr "Hem"
+
+#: taguette/templates/base.html:38
+#, python-format
+msgctxt "navigation item"
+msgid "Taguette Guide %(external_icon)s"
+msgstr "Taguette Guide %(external_icon)s"
+
+#: taguette/templates/base.html:42
+msgid "Single-user mode"
+msgstr "Singelanvändarläge"
+
+#: taguette/templates/base.html:46
+msgctxt "navigation dropdown menu"
+msgid "Account"
+msgstr "Konto"
+
+#: taguette/templates/base.html:48
+msgctxt "navigation item"
+msgid "Settings"
+msgstr "Inställningar"
+
+#: taguette/templates/base.html:50
+msgctxt "navigation item"
+msgid "Terms of Service"
+msgstr "Användarvillkor"
+
+#: taguette/templates/base.html:52
+msgctxt "navigation item"
+msgid "Log out"
+msgstr "Logga ut"
+
+#: taguette/templates/base.html:57
+msgctxt "navigation item"
+msgid "Log in"
+msgstr "Logga in"
+
+#: taguette/templates/base.html:72
+#, python-format
+msgid ""
+"Taguette %(version)s is released under a <a "
+"href=\"https://gitlab.com/remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause"
+" license</a>, &#169; Rémi Rampin and Taguette contributors | <a "
+"href=\"https://www.taguette.org/getting-started.html\">User "
+"Documentation</a>"
+msgstr ""
+"Taguette %(version)s släpps under <a "
+"href=\"https://gitlab.com/remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause"
+" license</a>, &#169; Rémi Rampin and Taguette contributors | <a "
+"href=\"https://www.taguette.org/getting-"
+"started.html\">Användardokumentation</a>"
+
+#: taguette/templates/token_needed.html:3
+msgctxt "page title"
+msgid "Error"
+msgstr "Fel"
+
+#: taguette/templates/token_needed.html:6
+msgid ""
+"Your browser did not supply a secret token to authenticate with the "
+"application. Please check the console for the correct URL to log in, or "
+"simply restart Taguette."
+msgstr ""
+"Din webbläsare tillhandahöll inte en hemlig token för att autentisera med"
+" programmet. Kontrollera konsolen efter rätt URL för att logga in, eller "
+"starta om Taguette."
+
+#: taguette/templates/reset_password.html:13
+msgid ""
+"If you had set an email address in your profile, you can enter it below "
+"and a link to reset your password will be sent to you."
+msgstr ""
+"Om du hade angett en e-postadress i din profil kan du ange den nedan och "
+"en länk för att återställa ditt lösenord kommer att skickas till dig."
+
+#: taguette/templates/reset_password.html:22
+msgctxt "password reset form submit button"
+msgid "Send"
+msgstr "Skicka"
+
+#: taguette/templates/reset_password.html:26
+msgid ""
+"If you didn't set an email address, you can try contacting your server "
+"administrator."
+msgstr ""
+"Om du inte har angett en e-postadress kan du försöka kontakta din "
+"serveradministratör."
+
