@@ -274,18 +274,28 @@ li.document-link-current a.document-link-a {
   text-align: initial; /* Reset alignment so RTL works */
 }
 
-.document-title {
+/* Sticky header holding the document title and the edit controls, so both
+   stay visible (and the edit buttons stay reachable) while scrolling. */
+.document-header {
   position: sticky;
   top: 0;
   z-index: 5;
+  background-color: #fff;
   /* Pull out to the edges of .document-view (cancels its 2.2em/0.3em padding) */
   margin: -2.2em -0.3em 1em -0.3em;
+}
+
+.document-title {
   padding: 0.5em 6em 0.5em 0.6em; /* right padding leaves room for the export button */
   background-color: #fff;
   border-bottom: 2px solid #dee2e6;
   font-size: 1.15em;
   font-weight: bold;
   overflow-wrap: break-word;
+}
+
+.document-edit-controls {
+  padding: 0.4em 0.6em;
 }
 
 li.tag-current {
@@ -300,6 +310,7 @@ li.tag-current {
   position: absolute;
   top: .1em;
   right: .5em;
+  z-index: 6; /* stay above the sticky .document-header */
 }
 
 #export-button .dropdown-toggle {

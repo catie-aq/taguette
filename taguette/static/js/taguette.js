@@ -1889,6 +1889,7 @@ document.getElementById('members-current').addEventListener('submit', function(e
 var document_contents = document.getElementById('document-contents');
 var export_button = document.getElementById('export-button');
 var document_title = document.getElementById('document-title');
+var document_header = document.getElementById('document-header');
 
 /*
  * Editing a document's content in place
@@ -1933,7 +1934,9 @@ function enterEditMode() {
   edit_save_btn.style.display = '';
   edit_cancel_btn.style.display = '';
   edit_hint.style.display = document_has_highlights ? '' : 'none';
-  document_contents.focus();
+  // Keep the current scroll position: focusing the editable area would
+  // otherwise scroll it back to the top of the page.
+  document_contents.focus({preventScroll: true});
 }
 
 function exitEditMode() {
@@ -1955,8 +1958,8 @@ function saveEditDocument() {
   )
   .then(function() {
     exitEditMode();
-    // Reload to display the server-sanitized version
-    loadDocument(doc_id);
+    // Reload to display the server-sanitized version, keeping scroll position
+    loadDocument(doc_id, true);
   })
   .catch(function(error) {
     console.error("Failed to save document content:", error);
@@ -1972,8 +1975,8 @@ function cancelEditDocument() {
   var doc_id = current_document;
   exitEditMode();
   if(doc_id !== null) {
-    // Reload to discard local changes
-    loadDocument(doc_id);
+    // Reload to discard local changes, keeping scroll position
+    loadDocument(doc_id, true);
   }
 }
 
@@ -1981,15 +1984,18 @@ edit_btn.addEventListener('click', enterEditMode);
 edit_save_btn.addEventListener('click', saveEditDocument);
 edit_cancel_btn.addEventListener('click', cancelEditDocument);
 
-function loadDocument(document_id) {
+function loadDocument(document_id, preserve_scroll) {
   if(document_id === null) {
     document_contents.style.direction = 'ltr';
     document_contents.innerHTML = '<p style="font-style: oblique; text-align: center;">' + gettext("Load a document on the left") + '</p>';
-    document_title.style.display = 'none';
+    document_header.style.display = 'none';
     exitEditMode();
     edit_controls.style.display = 'none';
     return;
   }
+  // Capture the scroll position before the spinner modal opens (Bootstrap
+  // tweaks the body/focus, which would falsify window.scrollY).
+  var saved_scroll = preserve_scroll ? window.scrollY : 0;
   showSpinner();
   var info = getJSON(
     '/api/project/' + project_id + '/document/' + document_id
@@ -2022,7 +2028,7 @@ function loadDocument(document_id) {
     // Show the document name in a sticky title bar
     var loaded_doc = documents['' + document_id];
     document_title.textContent = loaded_doc ? loaded_doc.name : '';
-    document_title.style.display = '';
+    document_header.style.display = '';
 
     // Offer in-place content editing (only when there are no highlights)
     resetEditControls(info.highlights.length > 0);
@@ -2047,11 +2053,14 @@ function loadDocument(document_id) {
       setHighlight(info.highlights[i]);
     }
     console.log("Loaded " + info.highlights.length + " highlights");
-    
-    // Update the filter tags list
+
+    // The tag filter is only offered in the tag (highlights) view, not while
+    // reading a single document.
     selectedFilters = {};
-    updateFilterTagsList();
-    initializeFilterSelect();
+    var filter_container = document.getElementById('highlights-filter');
+    if(filter_container) {
+      filter_container.style.display = 'none';
+    }
 
     // Update export button
     export_button.style.display = '';
@@ -2069,8 +2078,13 @@ function loadDocument(document_id) {
       }
     }
 
-    // Scroll up
-    window.setTimeout(function() { window.scrollTo(0, 0); }, 0);
+    // Restore the scroll position (0 for a fresh load, the saved position when
+    // reloading in place, e.g. after saving an edit). We wait for the spinner
+    // modal to be fully hidden, because Bootstrap restores focus/scroll
+    // asynchronously when closing it and would otherwise override us.
+    $('#spinner-modal').one('hidden.bs.modal', function() {
+      window.scrollTo(0, saved_scroll);
+    });
   })
   .catch(function(error) {
     console.error("Failed to load document:", error);
@@ -2092,7 +2106,7 @@ function loadTag(tag_path, page) {
     document_contents.style.direction = 'ltr';
     current_tag = tag_path;
     current_document = null;
-    document_title.style.display = 'none';
+    document_header.style.display = 'none';
     exitEditMode();
     edit_controls.style.display = 'none';
     var document_links = document.getElementsByClassName('document-link-current');
