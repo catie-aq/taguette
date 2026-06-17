@@ -164,3 +164,9 @@ msgstr ""
 msgid "You can no longer access this project."
 msgstr ""
 
+#: taguette/static/js/taguette.js:1993
+msgid ""
+"You have unsaved changes to this document. Are you sure you want to discard "
+"them?"
+msgstr ""
+

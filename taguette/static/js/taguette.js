@@ -564,6 +564,7 @@ function linkDocument(elem, doc_id) {
   elem.setAttribute('href', url);
   elem.addEventListener('click', function(e) {
     e.preventDefault();
+    if(!confirmDiscardEdit()) { return; }
     window.history.pushState({document_id: doc_id}, "Document " + doc_id, url);
     loadDocument(doc_id);
   });
@@ -846,6 +847,7 @@ function linkTag(elem, tag_path) {
   elem.setAttribute('href', url);
   elem.addEventListener('click', function(e) {
     e.preventDefault();
+    if(!confirmDiscardEdit()) { return; }
     window.history.pushState({tag_path: tag_path}, "Tag " + tag_path, url);
     loadTag(tag_path);
   });
@@ -1968,6 +1970,27 @@ function exitEditMode() {
   document_contents.classList.remove('editing');
   edit_save_btn.style.display = 'none';
   edit_cancel_btn.style.display = 'none';
+}
+
+// Warn before leaving the page (refresh, tab close, or navigating to another
+// URL) while there are unsaved document edits. Setting returnValue triggers
+// the browser's native confirmation dialog.
+window.addEventListener('beforeunload', function(e) {
+  if(editing_document) {
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+});
+
+// Ask the user before discarding unsaved document edits when navigating within
+// the app (clicking another document or tag). Returns true if it's OK to
+// proceed. beforeunload above doesn't fire for these in-app navigations.
+function confirmDiscardEdit() {
+  if(!editing_document) {
+    return true;
+  }
+  return window.confirm(gettext("You have unsaved changes to this document. Are you sure you want to discard them?"));
 }
 
 function saveEditDocument() {
