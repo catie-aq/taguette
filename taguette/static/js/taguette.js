@@ -321,6 +321,27 @@ function hideSpinner() {
   $('#spinner-modal').modal('hide');
 }
 
+// Restore the window scroll position after the spinner modal finishes hiding.
+// Bootstrap shifts focus (and therefore scroll) asynchronously when a modal
+// closes, so we wait for the 'hidden' event and then re-assert our position.
+// Namespaced + off() first so overlapping operations don't leave a stale
+// handler that would later fire on an unrelated spinner close and jump the
+// page (e.g. back to the top). Call this *before* hideSpinner(), with the
+// scroll position captured *before* showSpinner() (Bootstrap tweaks the body
+// while a modal is open, which would falsify window.scrollY).
+function restoreScrollAfterSpinner(saved_scroll) {
+  $('#spinner-modal')
+    .off('hidden.bs.modal.scrollrestore')
+    .one('hidden.bs.modal.scrollrestore', function() {
+      window.scrollTo(0, saved_scroll);
+      // Bootstrap may also restore focus (and thus scroll) right after this
+      // handler on the same tick; re-assert on the next frame to win the race.
+      window.requestAnimationFrame(function() {
+        window.scrollTo(0, saved_scroll);
+      });
+    });
+}
+
 
 /*
  * Selection stuff
@@ -959,11 +980,11 @@ function updateModalTagsList() {
     tags_modal_list.removeChild(first);
   }
 
-  // Apply search
-  var searchFor = document.getElementById('highlight-search').value;
+  // Apply search (case-insensitive)
+  var searchFor = document.getElementById('highlight-search').value.toLowerCase();
   if(searchFor.length > 0) {
     entries.forEach(function(e) {
-      if(e[1].path.indexOf(searchFor) > -1) {
+      if(e[1].path.toLowerCase().indexOf(searchFor) > -1) {
         e[1].searchGroup = '0';
       } else {
         e[1].searchGroup = '1';
@@ -1663,7 +1684,10 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
        context: context}
     );
   }
-  showSpinner();
+  // No spinner here: showing it stacks a second modal over the highlight modal,
+  // and Bootstrap shifts the page scroll back to the top when those modals
+  // close. The delete-highlight handler below doesn't show a spinner and stays
+  // put, so we mirror it to keep the reading position when adding a highlight.
   req.then(function() {
     console.log("Highlight posted");
     $(highlight_add_modal).modal('hide');
@@ -1675,8 +1699,7 @@ document.getElementById('highlight-add-form').addEventListener('submit', functio
   .catch(function(error) {
     console.error("Failed to create highlight:", error);
     alert(gettext("Couldn't create highlight!") + "\n\n" + error);
-  })
-  .then(hideSpinner);
+  });
 });
 
 // Delete highlight button
@@ -2079,12 +2102,8 @@ function loadDocument(document_id, preserve_scroll) {
     }
 
     // Restore the scroll position (0 for a fresh load, the saved position when
-    // reloading in place, e.g. after saving an edit). We wait for the spinner
-    // modal to be fully hidden, because Bootstrap restores focus/scroll
-    // asynchronously when closing it and would otherwise override us.
-    $('#spinner-modal').one('hidden.bs.modal', function() {
-      window.scrollTo(0, saved_scroll);
-    });
+    // reloading in place, e.g. after saving an edit).
+    restoreScrollAfterSpinner(saved_scroll);
   })
   .catch(function(error) {
     console.error("Failed to load document:", error);
@@ -2451,7 +2470,7 @@ function longPollForEvents() {
         // Reload the document if we're viewing it (unless we're the one
         // currently editing it)
         if(event.document_id === current_document && !editing_document) {
-          loadDocument(current_document);
+          loadDocument(current_document, true);
         }
       } else if(event.type === 'document_delete') {
         removeDocument(event.document_id);
