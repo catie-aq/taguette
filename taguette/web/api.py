@@ -7,7 +7,7 @@ import logging
 import math
 import os
 import prometheus_client
-from sqlalchemy import and_, func
+from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError, DatabaseError, NoSuchTableError
 from sqlalchemy.orm import aliased, defer, joinedload
 import tempfile
@@ -326,39 +326,58 @@ class DocumentContents(BaseHandler):
                 self.gettext("Document content can't be empty"),
             )
 
-        # Highlights are byte ranges in the document text. Changing the text
-        # before or within a highlight shifts its position. We allow editing
-        # only past the last highlight: the text up to the furthest end_offset
-        # ("protected zone") must stay byte-for-byte identical so every
-        # existing highlight keeps pointing at the same passage.
-        last_offset = (
-            self.db.query(func.max(database.Highlight.end_offset))
+        # Highlights are byte ranges into the document text. Editing the text
+        # shifts those ranges, so rather than forbidding the change we remap
+        # every existing highlight onto the new text. A highlight whose text is
+        # removed entirely is deleted.
+        highlights = (
+            self.db.query(database.Highlight)
+            .options(joinedload(database.Highlight.tags))
+            .options(defer('snippet'))
             .filter(database.Highlight.document_id == document.id)
-            .scalar()
+            .order_by(database.Highlight.start_offset)
+            .all()
         )
-        if last_offset:
+        commands = []
+        if highlights:
             old_text = extract.document_text(document.contents)
             new_text = extract.document_text(contents)
-            if new_text[:last_offset] != old_text[:last_offset]:
-                return self.send_error_json(
-                    400,
-                    self.gettext(
-                        "This change would move existing highlights. You can "
-                        "only add or change text after the last highlighted "
-                        "passage."
-                    ),
-                )
+            remapped = extract.remap_highlights(
+                old_text,
+                new_text,
+                [(hl.start_offset, hl.end_offset) for hl in highlights],
+            )
+            for hl, new_range in zip(highlights, remapped):
+                if new_range is None:
+                    # The highlighted text was removed by the edit
+                    old_tags = [t.id for t in hl.tags]
+                    cmd = database.Command.highlight_delete(
+                        self.current_user, document, hl.id,
+                    )
+                    cmd.tag_count_changes = {tag: -1 for tag in old_tags}
+                    commands.append(cmd)
+                    self.db.delete(hl)
+                    continue
+                # Only recompute the (potentially large) snippet when the
+                # highlighted bytes actually changed; a shift alone leaves the
+                # extracted text identical.
+                old_bytes = old_text[hl.start_offset:hl.end_offset]
+                new_bytes = new_text[new_range[0]:new_range[1]]
+                hl.start_offset, hl.end_offset = new_range
+                if new_bytes != old_bytes:
+                    hl.snippet = extract.extract(contents, *new_range)
 
         document.contents = contents
-        self.db.flush()
-        cmd = database.Command.document_change_content(
+        commands.append(database.Command.document_change_content(
             self.current_user,
             document,
-        )
-        self.db.add(cmd)
+        ))
+        for cmd in commands:
+            self.db.add(cmd)
         self.db.commit()
-        self.db.refresh(cmd)
-        self.application.notify_project(document.project_id, cmd)
+        for cmd in commands:
+            self.db.refresh(cmd)
+            self.application.notify_project(document.project_id, cmd)
         return self.send_json({'id': document.id})
 
 

@@ -1941,8 +1941,8 @@ function resetEditControls(has_highlights) {
     edit_controls.style.display = '';
     edit_btn.style.display = '';
     edit_btn.disabled = false;
-    // Editing is always allowed; with highlights it's restricted to text past
-    // the last highlighted passage (enforced server-side)
+    // Editing is always allowed; existing highlights are repositioned to match
+    // the new text server-side, so we just hint that this will happen.
     edit_hint.style.display = document_has_highlights ? '' : 'none';
   } else {
     edit_controls.style.display = 'none';

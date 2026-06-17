@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup, NavigableString
+import difflib
 import opentelemetry.trace
 import prometheus_client
 
@@ -123,6 +124,63 @@ def document_text(html):
     """
     soup = BeautifulSoup(html, 'html5lib')
     return b''.join(s.encode('utf-8') for s in soup.strings)
+
+
+def remap_highlights(old_text, new_text, ranges):
+    """Remap highlight byte ranges after a document's text was edited.
+
+    Highlight offsets are measured over the document text as UTF-8 bytes (see
+    :func:`document_text`). When that text changes, every offset past the edit
+    shifts. This recomputes each ``(start, end)`` range against ``new_text``.
+
+    :param old_text: document text (UTF-8 bytes) the ranges were measured over.
+    :param new_text: edited document text (UTF-8 bytes).
+    :param ranges: iterable of ``(start, end)`` byte ranges.
+    :return: list with one entry per input range: the remapped ``(start, end)``,
+        or ``None`` when the highlighted text was removed entirely.
+
+    An offset in an unchanged region moves by the net length change before it.
+    An offset inside an edited region snaps to that region's new bounds (a start
+    snaps to the left edge, an end to the right edge), so a highlight survives
+    as long as any of its text remains.
+
+    >>> remap_highlights(b'Hello world', b'Hello brave world', [(6, 11)])
+    [(12, 17)]
+    >>> remap_highlights(b'12345world', b'world', [(5, 10)])
+    [(0, 5)]
+    >>> remap_highlights(b'Hello world', b'world', [(0, 5)])
+    [None]
+    """
+    opcodes = difflib.SequenceMatcher(
+        None, old_text, new_text, autojunk=False,
+    ).get_opcodes()
+
+    def map_start(offset):
+        # A start offset points at the first highlighted byte: find the block
+        # that *contains* it (i1 <= offset < i2).
+        for tag, i1, i2, j1, j2 in opcodes:
+            if i1 <= offset < i2:
+                if tag == 'equal':
+                    return j1 + (offset - i1)
+                return j1  # edited region: snap to its left edge
+        return len(new_text)  # offset at/after the end of the old text
+
+    def map_end(offset):
+        # An end offset is exclusive: find the block that *ends* at it
+        # (i1 < offset <= i2).
+        for tag, i1, i2, j1, j2 in opcodes:
+            if i1 < offset <= i2:
+                if tag == 'equal':
+                    return j1 + (offset - i1)
+                return j2  # edited region: snap to its right edge
+        return 0  # offset at/before the start of the old text
+
+    result = []
+    for start, end in ranges:
+        new_start = map_start(start)
+        new_end = map_end(end)
+        result.append((new_start, new_end) if new_end > new_start else None)
+    return result
 
 
 def byte_to_str_index(string, byte_index):

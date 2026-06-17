@@ -9,17 +9,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version:  Taguette\n"
-"Report-Msgid-Bugs-To: hi@taguette.org\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-06-15 08:23+0000\n"
 "PO-Revision-Date: 2019-05-08 16:49+0000\n"
 "Last-Translator: \n"
+"Language-Team: Dutch (Netherlands) (https://app.transifex.com/remram44/teams/"
+"98824/nl_NL/)\n"
 "Language: nl_NL\n"
-"Language-Team: Dutch (Netherlands) "
-"(https://app.transifex.com/remram44/teams/98824/nl_NL/)\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.18.0\n"
 
 #: taguette/main.py:265
@@ -44,8 +44,8 @@ msgid ""
 "Database location or connection string, for example 'project.db' or "
 "'postgresql://me:pw@localhost/mydb' (default: %(default)r)"
 msgstr ""
-"Locatie van de database of verbindingsteken, bijvoorbeeld 'project.db' of"
-" 'postgresql://me:pw@localhost/mydb' (default: %(default)r)"
+"Locatie van de database of verbindingsteken, bijvoorbeeld 'project.db' of "
+"'postgresql://me:pw@localhost/mydb' (default: %(default)r)"
 
 #: taguette/main.py:283
 msgid "Set the file creation mask (umask) on systems that support it."
@@ -105,14 +105,14 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Taguette %(version)s is now running. You can connect to it using this"
-" link:\n"
+"    Taguette %(version)s is now running. You can connect to it using this "
+"link:\n"
 "\n"
 "    %(url)s\n"
 msgstr ""
 "\n"
-"    Taguette %(version)s wordt nu uitgevoerd. Je kunt deze link gebruiken"
-" om verbinding te maken\n"
+"    Taguette %(version)s wordt nu uitgevoerd. Je kunt deze link gebruiken om "
+"verbinding te maken\n"
 "\n"
 "    %(url)s\n"
 
@@ -144,10 +144,10 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    The database schema used by Taguette has changed! Because you are not"
-" using\n"
-"    SQLite, we will not attempt a migration automatically; back up your "
-"data and\n"
+"    The database schema used by Taguette has changed! Because you are not "
+"using\n"
+"    SQLite, we will not attempt a migration automatically; back up your data "
+"and\n"
 "    use `taguette --database=%(url)s migrate` if you want to proceed."
 msgstr ""
 "\n"
@@ -239,9 +239,9 @@ msgstr ""
 
 #: taguette/web/base.py:515
 msgid ""
-" | Please report issues via <a "
-"href=\"https://gitlab.com/remram44/taguette\">GitLab</a> or <a "
-"href=\"mailto:hi@taguette.org\">hi@taguette.org</a>!"
+" | Please report issues via <a href=\"https://gitlab.com/remram44/"
+"taguette\">GitLab</a> or <a href=\"mailto:hi@taguette.org\">hi@taguette.org</"
+"a>!"
 msgstr ""
 
 #: taguette/web/base.py:629
@@ -269,8 +269,8 @@ msgstr "Documentnaam mag niet leeg zijn"
 
 #: taguette/web/api.py:346
 msgid ""
-"This change would move existing highlights. You can only add or change "
-"text after the last highlighted passage."
+"This change would move existing highlights. You can only add or change text "
+"after the last highlighted passage."
 msgstr ""
 
 #: taguette/web/api.py:411 taguette/web/api.py:445 taguette/web/api.py:477
@@ -292,8 +292,8 @@ msgstr ""
 
 #: taguette/web/api.py:899
 msgid ""
-"This database is an unknown version. It might have been written by a more"
-" recent version of Taguette, please check for updates"
+"This database is an unknown version. It might have been written by a more "
+"recent version of Taguette, please check for updates"
 msgstr ""
 
 #: taguette/web/api.py:905
@@ -424,11 +424,11 @@ msgstr "Email"
 
 #: taguette/templates/account.html:23 taguette/templates/login.html:81
 msgid ""
-"Optional. <em>We will not share your email with anyone. This is only used"
-" in case you forget your password.</em>"
+"Optional. <em>We will not share your email with anyone. This is only used in "
+"case you forget your password.</em>"
 msgstr ""
-"Optioneel. <em>We delen je email met niemand. Dit is alleen voor het "
-"geval dat je je wachtwoord vergeet.</em>"
+"Optioneel. <em>We delen je email met niemand. Dit is alleen voor het geval "
+"dat je je wachtwoord vergeet.</em>"
 
 #: taguette/templates/account.html:27
 msgctxt "form label for language selection"
@@ -653,9 +653,9 @@ msgstr ""
 
 #: taguette/templates/project_import_codebook.html:8
 msgid ""
-"The file should have a column for the tag names, called 'name' or 'tag' "
-"or 'path'. It can also optionally have a column called 'description'. "
-"Other columns are ignored."
+"The file should have a column for the tag names, called 'name' or 'tag' or "
+"'path'. It can also optionally have a column called 'description'. Other "
+"columns are ignored."
 msgstr ""
 
 #: taguette/templates/project_import_codebook.html:15
@@ -689,20 +689,18 @@ msgstr "Cookiewaarschuwing"
 
 #: taguette/templates/cookies_prompt.html:7
 msgid ""
-"This website uses cookies to store your identity (if you choose to log "
-"in) and as a protection against <a href=\"https://en.wikipedia.org/wiki"
-"/Cross-site_request_forgery\">cross-site request forgery (CSRF)</a>. "
-"Before continuing, you must accept their use by clicking the button "
-"below. Those <strong>are not</strong> \"third-party\" or \"tracking\" "
-"cookies."
+"This website uses cookies to store your identity (if you choose to log in) "
+"and as a protection against <a href=\"https://en.wikipedia.org/wiki/Cross-"
+"site_request_forgery\">cross-site request forgery (CSRF)</a>. Before "
+"continuing, you must accept their use by clicking the button below. Those "
+"<strong>are not</strong> \"third-party\" or \"tracking\" cookies."
 msgstr ""
 "Deze website gebruikt cookies om je identiteit op te slaan (als je wilt "
-"inloggen) en als bescherming tegen <a "
-"href=\"https://en.wikipedia.org/wiki/Cross-site_request_forgery\">cross-"
-"site request forgery (CSRF)</a>. Voordat je verder gaat moet je akkoord "
-"gaan met het gebruik ervan door op onderstaande knop te klikken. Het gaat"
-" hierbij <strong>niet </strong> om \"third-party\" of \"tracking\" "
-"cookies."
+"inloggen) en als bescherming tegen <a href=\"https://en.wikipedia.org/wiki/"
+"Cross-site_request_forgery\">cross-site request forgery (CSRF)</a>. Voordat "
+"je verder gaat moet je akkoord gaan met het gebruik ervan door op "
+"onderstaande knop te klikken. Het gaat hierbij <strong>niet </strong> om "
+"\"third-party\" of \"tracking\" cookies."
 
 #: taguette/templates/cookies_prompt.html:12
 msgctxt "button on cookie warning page"
@@ -836,10 +834,10 @@ msgstr ""
 msgid "Cancel"
 msgstr "Annuleren"
 
-#: taguette/templates/project.html:136
+#: taguette/templates/project.html:137
 msgid ""
-"This document has highlights: you can only add or change text after the "
-"last highlighted passage"
+"This document has highlights: editing the text will reposition them "
+"automatically"
 msgstr ""
 
 #: taguette/templates/project.html:140
@@ -1002,8 +1000,8 @@ msgstr "Beschrijving"
 
 #: taguette/templates/project.html:351
 msgid ""
-"Tags starting with <strong>@</strong> (e.g. <code>@todo</code>) are "
-"treated as temporary — their highlights appear in grey instead of yellow."
+"Tags starting with <strong>@</strong> (e.g. <code>@todo</code>) are treated "
+"as temporary — their highlights appear in grey instead of yellow."
 msgstr ""
 
 #: taguette/templates/project.html:355
@@ -1039,12 +1037,12 @@ msgstr "Naam: %(project_name)s"
 #, python-format
 msgid ""
 "Are you sure you want to delete this project? It currently has "
-"<strong>%(documents)s documents and %(highlights)s highlights in %(tags)s"
-" tags</strong>. There is no way to undo."
+"<strong>%(documents)s documents and %(highlights)s highlights in %(tags)s "
+"tags</strong>. There is no way to undo."
 msgstr ""
-"Weet je zeker dat je dit project wilt verwijderen? Deze heeft op het "
-"moment <strong>%(documents)s documenten en %(highlights)s markeringen in "
-"%(tags)s labels</strong>. Dit kan niet ongedaan worden gemaakt."
+"Weet je zeker dat je dit project wilt verwijderen? Deze heeft op het moment "
+"<strong>%(documents)s documenten en %(highlights)s markeringen in %(tags)s "
+"labels</strong>. Dit kan niet ongedaan worden gemaakt."
 
 #: taguette/templates/project_delete.html:13
 msgctxt "submit button"
@@ -1059,8 +1057,8 @@ msgid ""
 "href=\"%(link)s\">%(link)s</a>"
 msgstr ""
 "Iemand heeft een verzoek ingediend om het wachtwoord te resetten voor de "
-"Taguette-account die aan dit email-adres verbonden is. Als jij dit was, "
-"volg dan a.u.b. deze link: <a href=\"%(link)s\">%(link)s</a>"
+"Taguette-account die aan dit email-adres verbonden is. Als jij dit was, volg "
+"dan a.u.b. deze link: <a href=\"%(link)s\">%(link)s</a>"
 
 #: taguette/templates/email_reset_password.html:3
 #, python-format
@@ -1110,20 +1108,19 @@ msgstr "Welkom"
 
 #: taguette/templates/welcome.html:9
 msgid ""
-"<span style=\"font-family:BadScript;\"><a "
-"href=\"https://www.taguette.org/\">TAGUETTE</a></span> is an open-source "
-"web-based document tagging tool for qualitative data analysis."
+"<span style=\"font-family:BadScript;\"><a href=\"https://www.taguette.org/"
+"\">TAGUETTE</a></span> is an open-source web-based document tagging tool for "
+"qualitative data analysis."
 msgstr ""
-"<span style=\\\"font-family:BadScript;\\\"><a "
-"href=\\\"https://www.taguette.org/\\\">TAGUETTE</a></span> is een open-"
-"source, web-based tool voor documentmarkering ten behoeve van "
-"kwalitatieve data-analyse."
+"<span style=\\\"font-family:BadScript;\\\"><a href=\\\"https://"
+"www.taguette.org/\\\">TAGUETTE</a></span> is een open-source, web-based tool "
+"voor documentmarkering ten behoeve van kwalitatieve data-analyse."
 
 #: taguette/templates/welcome.html:10
 msgid ""
 "Using this tool, you can upload a collection of documents, create a "
-"hierarchy of tags, and annotate portions of documents with tags and notes"
-" that you can recall and organize later."
+"hierarchy of tags, and annotate portions of documents with tags and notes "
+"that you can recall and organize later."
 msgstr ""
 "Met behulp van deze tool kun je een verzameling documenten uploaden, een "
 "hiërarchie van labels aanmaken en gedeeltes van documenten annoteren met "
@@ -1202,11 +1199,10 @@ msgstr "Inloggen"
 #: taguette/templates/base.html:72
 #, python-format
 msgid ""
-"Taguette %(version)s is released under a <a "
-"href=\"https://gitlab.com/remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause"
-" license</a>, &#169; Rémi Rampin and Taguette contributors | <a "
-"href=\"https://www.taguette.org/getting-started.html\">User "
-"Documentation</a>"
+"Taguette %(version)s is released under a <a href=\"https://gitlab.com/"
+"remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause license</a>, &#169; "
+"Rémi Rampin and Taguette contributors | <a href=\"https://www.taguette.org/"
+"getting-started.html\">User Documentation</a>"
 msgstr ""
 
 #: taguette/templates/token_needed.html:3
@@ -1220,17 +1216,17 @@ msgid ""
 "application. Please check the console for the correct URL to log in, or "
 "simply restart Taguette."
 msgstr ""
-"Je browser heeft geen geheim teken doorgegeven voor authentificatie met "
-"de applicatie. Check de console a.u.b. voor de correcte URL om in te "
-"loggen, of herstart  eenvoudigweg Taguette."
+"Je browser heeft geen geheim teken doorgegeven voor authentificatie met de "
+"applicatie. Check de console a.u.b. voor de correcte URL om in te loggen, of "
+"herstart  eenvoudigweg Taguette."
 
 #: taguette/templates/reset_password.html:13
 msgid ""
-"If you had set an email address in your profile, you can enter it below "
-"and a link to reset your password will be sent to you."
+"If you had set an email address in your profile, you can enter it below and "
+"a link to reset your password will be sent to you."
 msgstr ""
-"Als je een email-adres in je profiel hebt ingesteld, kun je dit hieronder"
-" invullen en krijg je een link toegestuurd om je wachtwoord te resetten."
+"Als je een email-adres in je profiel hebt ingesteld, kun je dit hieronder "
+"invullen en krijg je een link toegestuurd om je wachtwoord te resetten."
 
 #: taguette/templates/reset_password.html:22
 msgctxt "password reset form submit button"
@@ -1242,6 +1238,5 @@ msgid ""
 "If you didn't set an email address, you can try contacting your server "
 "administrator."
 msgstr ""
-"Als je geen email-adres hebt aangemaakt, kun je proberen contact op te "
-"nemen met de server-administrator."
-
+"Als je geen email-adres hebt aangemaakt, kun je proberen contact op te nemen "
+"met de server-administrator."

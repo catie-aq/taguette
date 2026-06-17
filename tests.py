@@ -276,6 +276,35 @@ class TestMeasure(unittest.TestCase):
         self.assertEqual(snippet,
                          '<p>R\xE9mi</p>')
 
+    def test_remap_highlights(self):
+        """Tests remapping highlight byte ranges after a text edit."""
+        # Insertion before a highlight shifts it right
+        self.assertEqual(
+            extract.remap_highlights(
+                b'Hello world', b'Hello brave world', [(6, 11)],
+            ),
+            [(12, 17)],
+        )
+        # Deletion before a highlight shifts it left
+        self.assertEqual(
+            extract.remap_highlights(b'12345world', b'world', [(5, 10)]),
+            [(0, 5)],
+        )
+        # An edit after a highlight leaves it untouched
+        self.assertEqual(
+            extract.remap_highlights(b'abc def', b'abc def ghi', [(0, 3)]),
+            [(0, 3)],
+        )
+        # A highlight whose text is removed entirely is dropped
+        self.assertEqual(
+            extract.remap_highlights(b'Hello world', b'world', [(0, 5)]),
+            [None],
+        )
+        # Two separate edits: a highlight between them keeps its text
+        old, new = b'aa MID bb', b'Xaa MID bbY'
+        (remapped,) = extract.remap_highlights(old, new, [(3, 6)])
+        self.assertEqual(new[remapped[0]:remapped[1]], old[3:6])
+
     def test_highlight(self):
         """Tests highlighting an HTML document with only ASCII characters."""
         html = '<p><u>Hello</u> there <i>World</i></p>'

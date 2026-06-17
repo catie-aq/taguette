@@ -798,10 +798,10 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: taguette/templates/project.html:136
+#: taguette/templates/project.html:137
 msgid ""
-"This document has highlights: you can only add or change text after the "
-"last highlighted passage"
+"This document has highlights: editing the text will reposition them "
+"automatically"
 msgstr ""
 
 #: taguette/templates/project.html:140

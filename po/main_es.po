@@ -9,18 +9,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version:  Taguette\n"
-"Report-Msgid-Bugs-To: hi@taguette.org\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2026-06-15 08:23+0000\n"
 "PO-Revision-Date: 2019-05-08 16:49+0000\n"
 "Last-Translator: \n"
+"Language-Team: Spanish (https://app.transifex.com/remram44/teams/98824/es/)\n"
 "Language: es\n"
-"Language-Team: Spanish "
-"(https://app.transifex.com/remram44/teams/98824/es/)\n"
-"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 "
-"? 1 : 2;\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
 "Generated-By: Babel 2.18.0\n"
 
 #: taguette/main.py:265
@@ -46,15 +45,14 @@ msgid ""
 "'postgresql://me:pw@localhost/mydb' (default: %(default)r)"
 msgstr ""
 "Ubicación de la base de datos o cadena de conexión, por ejemplo "
-"'proyecto.bdd' o "
-"'postgresql://usuario:contraseña@localhost/mibasededatos' (por defecto: "
-"%(default)r)"
+"'proyecto.bdd' o 'postgresql://usuario:contraseña@localhost/mibasededatos' "
+"(por defecto: %(default)r)"
 
 #: taguette/main.py:283
 msgid "Set the file creation mask (umask) on systems that support it."
 msgstr ""
-"Establezca la máscara de creación de archivos (umask) en los sistemas que"
-" la admitan"
+"Establezca la máscara de creación de archivos (umask) en los sistemas que la "
+"admitan"
 
 #: taguette/main.py:287
 msgid "Don't change umask on startup"
@@ -87,8 +85,8 @@ msgid ""
 "Configuration file for the server. The default configuration can be "
 "generated using the `default-config` command"
 msgstr ""
-"Configurar el archivo para el servidor. La configuración por defecto "
-"puede ser generada com el comando `default-config`"
+"Configurar el archivo para el servidor. La configuración por defecto puede "
+"ser generada com el comando `default-config`"
 
 #: taguette/main.py:330
 #, python-format
@@ -112,14 +110,13 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"    Taguette %(version)s is now running. You can connect to it using this"
-" link:\n"
+"    Taguette %(version)s is now running. You can connect to it using this "
+"link:\n"
 "\n"
 "    %(url)s\n"
 msgstr ""
 "\n"
-"    Taguette %(version)s está activo. Te puedes conectar con este enlace:"
-"\n"
+"    Taguette %(version)s está activo. Te puedes conectar con este enlace:\n"
 "\n"
 "    %(url)s\n"
 
@@ -130,8 +127,8 @@ msgid ""
 "    update your workspace automatically.\n"
 msgstr ""
 "\n"
-"El esquema de la base de datos usado por Taguette ha cambiado! Trataremos"
-" de\n"
+"El esquema de la base de datos usado por Taguette ha cambiado! Trataremos "
+"de\n"
 " actualizar su espacio de trabajo automáticamente\n"
 
 #: taguette/database/__init__.py:148
@@ -143,27 +140,26 @@ msgid ""
 "    %(backup)s\n"
 msgstr ""
 "\n"
-"Una copia de respaldo de su archivo de base de datos ha sido creada. Si "
-"la actualización\n"
-"funciona terriblemente mal, asegúrese de conservar ese archivo, y "
-"háganoslo saber:\n"
+"Una copia de respaldo de su archivo de base de datos ha sido creada. Si la "
+"actualización\n"
+"funciona terriblemente mal, asegúrese de conservar ese archivo, y háganoslo "
+"saber:\n"
 "1%(backup)s\n"
 
 #: taguette/database/__init__.py:160
 #, python-format
 msgid ""
 "\n"
-"    The database schema used by Taguette has changed! Because you are not"
-" using\n"
-"    SQLite, we will not attempt a migration automatically; back up your "
-"data and\n"
+"    The database schema used by Taguette has changed! Because you are not "
+"using\n"
+"    SQLite, we will not attempt a migration automatically; back up your data "
+"and\n"
 "    use `taguette --database=%(url)s migrate` if you want to proceed."
 msgstr ""
 "\n"
-"El esquema de la base de datos usada por TAguette ha cambiado! Porque "
-"usted no está usando\n"
-"SQLite, no vamos a intentar una migración automática; respalde sus datos "
-"y\n"
+"El esquema de la base de datos usada por TAguette ha cambiado! Porque usted "
+"no está usando\n"
+"SQLite, no vamos a intentar una migración automática; respalde sus datos y\n"
 "use `taguette --database=1%(url)s migrate`  si quiere proceder"
 
 #: taguette/web/views.py:135
@@ -249,9 +245,9 @@ msgstr "Esta página no existe"
 
 #: taguette/web/base.py:515
 msgid ""
-" | Please report issues via <a "
-"href=\"https://gitlab.com/remram44/taguette\">GitLab</a> or <a "
-"href=\"mailto:hi@taguette.org\">hi@taguette.org</a>!"
+" | Please report issues via <a href=\"https://gitlab.com/remram44/"
+"taguette\">GitLab</a> or <a href=\"mailto:hi@taguette.org\">hi@taguette.org</"
+"a>!"
 msgstr ""
 
 #: taguette/web/base.py:629
@@ -279,8 +275,8 @@ msgstr "El nombre del documento no puede estar en blanco"
 
 #: taguette/web/api.py:346
 msgid ""
-"This change would move existing highlights. You can only add or change "
-"text after the last highlighted passage."
+"This change would move existing highlights. You can only add or change text "
+"after the last highlighted passage."
 msgstr ""
 
 #: taguette/web/api.py:411 taguette/web/api.py:445 taguette/web/api.py:477
@@ -302,12 +298,12 @@ msgstr "Bebe haber al menos un administrador"
 
 #: taguette/web/api.py:899
 msgid ""
-"This database is an unknown version. It might have been written by a more"
-" recent version of Taguette, please check for updates"
+"This database is an unknown version. It might have been written by a more "
+"recent version of Taguette, please check for updates"
 msgstr ""
 "La base de datos se encuentra en una versión desconocida. Es posible que "
-"haya sido creada por una versión más reciente de Taguette, por favor "
-"busque actualizaciones pendientes"
+"haya sido creada por una versión más reciente de Taguette, por favor busque "
+"actualizaciones pendientes"
 
 #: taguette/web/api.py:905
 msgid "This database could not be updated to the current version"
@@ -437,11 +433,11 @@ msgstr "Correo electrónico"
 
 #: taguette/templates/account.html:23 taguette/templates/login.html:81
 msgid ""
-"Optional. <em>We will not share your email with anyone. This is only used"
-" in case you forget your password.</em>"
+"Optional. <em>We will not share your email with anyone. This is only used in "
+"case you forget your password.</em>"
 msgstr ""
-"Optativo. <em>No le mostraremos tu dirección de correo a nadie. Esto es "
-"sólo en caso de que se te olvide tu contraseña.</em>"
+"Optativo. <em>No le mostraremos tu dirección de correo a nadie. Esto es sólo "
+"en caso de que se te olvide tu contraseña.</em>"
 
 #: taguette/templates/account.html:27
 msgctxt "form label for language selection"
@@ -666,9 +662,9 @@ msgstr ""
 
 #: taguette/templates/project_import_codebook.html:8
 msgid ""
-"The file should have a column for the tag names, called 'name' or 'tag' "
-"or 'path'. It can also optionally have a column called 'description'. "
-"Other columns are ignored."
+"The file should have a column for the tag names, called 'name' or 'tag' or "
+"'path'. It can also optionally have a column called 'description'. Other "
+"columns are ignored."
 msgstr ""
 
 #: taguette/templates/project_import_codebook.html:15
@@ -702,12 +698,11 @@ msgstr ""
 
 #: taguette/templates/cookies_prompt.html:7
 msgid ""
-"This website uses cookies to store your identity (if you choose to log "
-"in) and as a protection against <a href=\"https://en.wikipedia.org/wiki"
-"/Cross-site_request_forgery\">cross-site request forgery (CSRF)</a>. "
-"Before continuing, you must accept their use by clicking the button "
-"below. Those <strong>are not</strong> \"third-party\" or \"tracking\" "
-"cookies."
+"This website uses cookies to store your identity (if you choose to log in) "
+"and as a protection against <a href=\"https://en.wikipedia.org/wiki/Cross-"
+"site_request_forgery\">cross-site request forgery (CSRF)</a>. Before "
+"continuing, you must accept their use by clicking the button below. Those "
+"<strong>are not</strong> \"third-party\" or \"tracking\" cookies."
 msgstr ""
 
 #: taguette/templates/cookies_prompt.html:12
@@ -842,10 +837,10 @@ msgstr ""
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: taguette/templates/project.html:136
+#: taguette/templates/project.html:137
 msgid ""
-"This document has highlights: you can only add or change text after the "
-"last highlighted passage"
+"This document has highlights: editing the text will reposition them "
+"automatically"
 msgstr ""
 
 #: taguette/templates/project.html:140
@@ -1008,8 +1003,8 @@ msgstr "Descripción"
 
 #: taguette/templates/project.html:351
 msgid ""
-"Tags starting with <strong>@</strong> (e.g. <code>@todo</code>) are "
-"treated as temporary — their highlights appear in grey instead of yellow."
+"Tags starting with <strong>@</strong> (e.g. <code>@todo</code>) are treated "
+"as temporary — their highlights appear in grey instead of yellow."
 msgstr ""
 
 #: taguette/templates/project.html:355
@@ -1045,8 +1040,8 @@ msgstr "Nombre: %(project_name)s"
 #, python-format
 msgid ""
 "Are you sure you want to delete this project? It currently has "
-"<strong>%(documents)s documents and %(highlights)s highlights in %(tags)s"
-" tags</strong>. There is no way to undo."
+"<strong>%(documents)s documents and %(highlights)s highlights in %(tags)s "
+"tags</strong>. There is no way to undo."
 msgstr ""
 "¿Estás seguro que quieres eliminar este proyecto? Actulamente tiene "
 "<strong>%(documents)s documentos y %(highlights)s resaltados en %(tags)s "
@@ -1065,8 +1060,8 @@ msgid ""
 "href=\"%(link)s\">%(link)s</a>"
 msgstr ""
 "Alguien ha pedido reestablecer la contraseña de la cuenta de Taguette "
-"asociada con este correo electrónico. Si has sido tú, favor de seguir "
-"este enlace: <a href=\"%(link)s\">%(link)s</a>"
+"asociada con este correo electrónico. Si has sido tú, favor de seguir este "
+"enlace: <a href=\"%(link)s\">%(link)s</a>"
 
 #: taguette/templates/email_reset_password.html:3
 #, python-format
@@ -1116,24 +1111,24 @@ msgstr "Bienvenido/a"
 
 #: taguette/templates/welcome.html:9
 msgid ""
-"<span style=\"font-family:BadScript;\"><a "
-"href=\"https://www.taguette.org/\">TAGUETTE</a></span> is an open-source "
-"web-based document tagging tool for qualitative data analysis."
+"<span style=\"font-family:BadScript;\"><a href=\"https://www.taguette.org/"
+"\">TAGUETTE</a></span> is an open-source web-based document tagging tool for "
+"qualitative data analysis."
 msgstr ""
-"El proyecto <span style=\\\"font-family:BadScript;\\\"><a "
-"href=\\\"https://www.taguette.org/\\\">TAGUETTE</a></span> es un intento "
-"de crear una herramienta open-source con interfase web para el análisis "
-"cualitativo de datos."
+"El proyecto <span style=\\\"font-family:BadScript;\\\"><a href=\\\"https://"
+"www.taguette.org/\\\">TAGUETTE</a></span> es un intento de crear una "
+"herramienta open-source con interfase web para el análisis cualitativo de "
+"datos."
 
 #: taguette/templates/welcome.html:10
 msgid ""
 "Using this tool, you can upload a collection of documents, create a "
-"hierarchy of tags, and annotate portions of documents with tags and notes"
-" that you can recall and organize later."
+"hierarchy of tags, and annotate portions of documents with tags and notes "
+"that you can recall and organize later."
 msgstr ""
-"Con esta herramienta, puedes subir una colección de documentos, crear una"
-" jerarquía de etiquetas, anotar porciones de documentos con etiquetas y "
-"notas que puedes recuperar y organizar más tarde."
+"Con esta herramienta, puedes subir una colección de documentos, crear una "
+"jerarquía de etiquetas, anotar porciones de documentos con etiquetas y notas "
+"que puedes recuperar y organizar más tarde."
 
 #: taguette/templates/welcome.html:12
 #, python-format
@@ -1210,11 +1205,10 @@ msgstr "Iniciar sesión"
 #: taguette/templates/base.html:72
 #, python-format
 msgid ""
-"Taguette %(version)s is released under a <a "
-"href=\"https://gitlab.com/remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause"
-" license</a>, &#169; Rémi Rampin and Taguette contributors | <a "
-"href=\"https://www.taguette.org/getting-started.html\">User "
-"Documentation</a>"
+"Taguette %(version)s is released under a <a href=\"https://gitlab.com/"
+"remram44/taguette/blob/master/LICENSE.txt\">BSD-3-Clause license</a>, &#169; "
+"Rémi Rampin and Taguette contributors | <a href=\"https://www.taguette.org/"
+"getting-started.html\">User Documentation</a>"
 msgstr ""
 
 #: taguette/templates/token_needed.html:3
@@ -1229,17 +1223,16 @@ msgid ""
 "simply restart Taguette."
 msgstr ""
 "Tu navegador no envió una clave secreta para identificarse con la "
-"aplicación. Favor de verificar en la consola el enlace correcto para "
-"iniciar sesión o simplemente reinicia Taguette."
+"aplicación. Favor de verificar en la consola el enlace correcto para iniciar "
+"sesión o simplemente reinicia Taguette."
 
 #: taguette/templates/reset_password.html:13
 msgid ""
-"If you had set an email address in your profile, you can enter it below "
-"and a link to reset your password will be sent to you."
+"If you had set an email address in your profile, you can enter it below and "
+"a link to reset your password will be sent to you."
 msgstr ""
 "Si indicaste una dirección de correo electrónico en tu perfil, puedes "
-"ingresarla aquí y un enlace para reestablecer tu contraseña te será "
-"enviado."
+"ingresarla aquí y un enlace para reestablecer tu contraseña te será enviado."
 
 #: taguette/templates/reset_password.html:22
 msgctxt "password reset form submit button"
@@ -1253,4 +1246,3 @@ msgid ""
 msgstr ""
 "Si no indicaste una dirección de correo electrónico, puedes intentar "
 "contactar al administrador/a de tu servidor."
-
