@@ -1354,10 +1354,22 @@ function updateFilterTagsList() {
     return tags[a].path.localeCompare(tags[b].path);
   });
   
-  // Store currently selected values
+  // Store currently selected values, then tear the Tom Select instances down
+  // *before* rebuilding the <option>s. Tom Select snapshots the original
+  // <select> markup when it's created and restores that snapshot on destroy(),
+  // so destroying it after a rebuild would wipe the freshly populated options
+  // and the preserved selections — making the active filters look reset.
   var previousSelectionsInclude = tom_select_filter_include ? tom_select_filter_include.getValue() : [];
   var previousSelectionsExclude = tom_select_filter_exclude ? tom_select_filter_exclude.getValue() : [];
-  
+  if(tom_select_filter_include) {
+    tom_select_filter_include.destroy();
+    tom_select_filter_include = null;
+  }
+  if(tom_select_filter_exclude) {
+    tom_select_filter_exclude.destroy();
+    tom_select_filter_exclude = null;
+  }
+
   // Populate include filter
   filter_select_include.innerHTML = '';
   for(var i = 0; i < sorted_tag_ids.length; ++i) {
@@ -1399,17 +1411,16 @@ function updateFilterTagsList() {
     
     filter_select_exclude.appendChild(option);
   }
-  
-  // Update Tom Select instances
-  if(tom_select_filter_include) {
-    tom_select_filter_include.destroy();
-    tom_select_filter_include = null;
-  }
-  if(tom_select_filter_exclude) {
-    tom_select_filter_exclude.destroy();
-    tom_select_filter_exclude = null;
-  }
+
+  // Re-create the Tom Select instances from the rebuilt <option>s (the
+  // previously selected tags are marked selected above, so they carry over).
   initializeFilterSelect();
+
+  // Re-apply the (preserved) filter selections to the rebuilt DOM. Without
+  // this, rebuilding the list (e.g. after adding a tag to a highlight in the
+  // tag view, which reloads via loadTag) keeps the dropdown selections but
+  // shows every highlight again, making the active filters look reset.
+  applyHighlightFilters();
 }
 
 // Initialize Tom Select for filter

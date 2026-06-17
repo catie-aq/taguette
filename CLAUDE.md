@@ -41,6 +41,12 @@ taguette --debug                  # starts at http://localhost:7465
 
 **Highlight offsets**: stored as UTF-8 byte positions in the document's text (HTML tags excluded). See `extract.py`.
 
+**Editing a document remaps its highlights**: When a document's content is edited (`DocumentContents` PUT in `web/api.py`), highlights are byte ranges into the text and would otherwise drift. Instead of forbidding edits that touch highlighted passages, the handler remaps every highlight onto the new text via `extract.remap_highlights(old_text, new_text, ranges)`:
+- `remap_highlights` diffs the old vs. new document text (`difflib.SequenceMatcher`) and shifts each `(start, end)` range. A highlight whose text was removed entirely maps to `None` and is **deleted** (emitting a `highlight_delete` command with `tag_count_changes`).
+- Performance: edits are localized, so `remap_highlights` first trims the shared common prefix/suffix (binary-searched via `_common_prefix_len`/`_common_suffix_len`) and only diffs the changed middle region — avoiding a full-document diff on large texts.
+- The handler only recomputes a highlight's `snippet` (`extract.extract`) when the highlighted bytes actually changed; a pure positional shift leaves the extracted text identical.
+- Each remap/delete produces its own `Command`, all committed together and broadcast via `notify_project`. On the frontend (`taguette.js`), `highlight_add`/`highlight_delete` events update positions live; in the tag (highlights) view the active tag filters are preserved across the reload.
+
 **Two runtime modes**:
 - Single-user: `MULTIUSER=False`, auto-login as `admin`, SQLite3, auto-migrate.
 - Server: config file required, manual `taguette migrate` before upgrade.
