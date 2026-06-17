@@ -126,6 +126,35 @@ def document_text(html):
     return b''.join(s.encode('utf-8') for s in soup.strings)
 
 
+def _common_prefix_len(a, b):
+    """Length of the longest common prefix of two byte strings.
+
+    Uses a binary search over slice comparisons (which run in C) rather than a
+    byte-by-byte Python loop, so a large shared prefix stays cheap.
+    """
+    lo, hi = 0, min(len(a), len(b))
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if a[:mid] == b[:mid]:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
+
+
+def _common_suffix_len(a, b, limit):
+    """Length of the longest common suffix of two byte strings, capped at
+    ``limit`` so it never overlaps an already-counted common prefix."""
+    lo, hi = 0, limit
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if a[len(a) - mid:] == b[len(b) - mid:]:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
+
+
 def remap_highlights(old_text, new_text, ranges):
     """Remap highlight byte ranges after a document's text was edited.
 
@@ -151,9 +180,37 @@ def remap_highlights(old_text, new_text, ranges):
     >>> remap_highlights(b'Hello world', b'world', [(0, 5)])
     [None]
     """
-    opcodes = difflib.SequenceMatcher(
-        None, old_text, new_text, autojunk=False,
-    ).get_opcodes()
+    if old_text == new_text:
+        return [(start, end) for start, end in ranges]
+
+    # Edits are almost always localized, so the bulk of the document is an
+    # unchanged prefix and suffix shared by both versions. Running difflib over
+    # the whole (possibly huge) text is wasteful: trim the common prefix and
+    # suffix and diff only the region that actually changed. The trimmed parts
+    # are reinserted as synthetic 'equal' opcodes so the mapping below is
+    # unchanged.
+    old_len = len(old_text)
+    new_len = len(new_text)
+    prefix = _common_prefix_len(old_text, new_text)
+    suffix = _common_suffix_len(
+        old_text, new_text, min(old_len, new_len) - prefix,
+    )
+    old_mid_end = old_len - suffix
+    new_mid_end = new_len - suffix
+
+    opcodes = [
+        (tag, i1 + prefix, i2 + prefix, j1 + prefix, j2 + prefix)
+        for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+            None,
+            old_text[prefix:old_mid_end],
+            new_text[prefix:new_mid_end],
+            autojunk=False,
+        ).get_opcodes()
+    ]
+    if prefix:
+        opcodes.insert(0, ('equal', 0, prefix, 0, prefix))
+    if suffix:
+        opcodes.append(('equal', old_mid_end, old_len, new_mid_end, new_len))
 
     def map_start(offset):
         # A start offset points at the first highlighted byte: find the block
