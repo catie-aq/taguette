@@ -415,11 +415,35 @@ function describeSelection() {
   return null;
 }
 
+// Convert a byte offset into a [textNode, charIndex] DOM position. locatePos
+// returns the byte offset *within* a node; setStart/setEnd want a character
+// index, so we convert (UTF-8 bytes -> UTF-16 code units) the same way
+// splitAtPos does. Treating bytes as characters drifts on multi-byte text
+// (e.g. accented French letters).
+function domPointForOffset(pos) {
+  var loc = locatePos(pos);
+  var node = loc[0], bytes = loc[1];
+  while(node && node.nodeType !== 3 && node.firstChild) {
+    node = node.firstChild;
+  }
+  if(!node || node.nodeType !== 3) { return loc; }
+  var text = node.textContent, ci = 0;
+  while(bytes > 0 && ci < text.length) {
+    var code = text.charCodeAt(ci);
+    if(code <= 0x7f) { bytes -= 1; }
+    else if(code <= 0x7ff) { bytes -= 2; }
+    else if(code <= 0xffff) { bytes -= 3; }
+    else { bytes -= 4; }
+    ci += 1;
+  }
+  return [node, ci];
+}
+
 // Build a DOM Range spanning a described byte range [start, end]
 function rangeForOffsets(saved) {
   var range = document.createRange();
-  var start = locatePos(saved[0]);
-  var end = locatePos(saved[1]);
+  var start = domPointForOffset(saved[0]);
+  var end = domPointForOffset(saved[1]);
   range.setStart(start[0], start[1]);
   range.setEnd(end[0], end[1]);
   return range;
@@ -444,6 +468,34 @@ function caretFromPoint(x, y) {
     if(range) { return [range.startContainer, range.startOffset]; }
   }
   return null;
+}
+
+// Byte offset under a viewport point, robust to carets that land on an element
+// node (between text runs / on block boundaries). describePos assumes a TEXT
+// node — handed an element with a *child index*, it computes a garbage offset
+// that, once saved, corrupts the highlight. Here we resolve element carets to a
+// real text-node boundary first.
+function offsetFromPoint(x, y) {
+  var caret = caretFromPoint(x, y);
+  if(!caret) { return null; }
+  var node = caret[0], off = caret[1];
+  if(node.nodeType === 3) {           // TEXT_NODE: the normal case
+    return describePos(node, off);
+  }
+  // ELEMENT_NODE: off is a child index, not a character index
+  if(!node.childNodes || node.childNodes.length === 0) {
+    return describePos(node, 0);
+  }
+  if(off >= node.childNodes.length) {
+    node = node.childNodes[node.childNodes.length - 1];
+    while(node && node.nodeType !== 3 && node.lastChild) { node = node.lastChild; }
+    if(!node || node.nodeType !== 3) { return null; }
+    return describePos(node, node.textContent.length);
+  }
+  node = node.childNodes[off];
+  while(node && node.nodeType !== 3 && node.firstChild) { node = node.firstChild; }
+  if(!node || node.nodeType !== 3) { return null; }
+  return describePos(node, 0);
 }
 
 function splitAtPos(pos, after) {
@@ -1312,11 +1364,13 @@ function removeHighlight(id) {
     hideHighlightHandles();
   }
 
-  // Loop over highlight-<id> elements
+  // Unwrap every highlight-<id> span. getElementsByClassName is a *live*
+  // collection: removing an element re-indexes it, so we must always take the
+  // first remaining one rather than iterate by an incrementing index (which
+  // would skip every other span and leave stale yellow behind).
   var elements = document.getElementsByClassName('highlight-' + id);
-  for(var i = 0; i < elements.length; ++i) {
-    // Move children up and delete this element
-    var node = elements[i];
+  while(elements.length) {
+    var node = elements[0];
     while(node.firstChild) {
       node.parentNode.insertBefore(node.firstChild, node);
     }
@@ -2005,7 +2059,14 @@ function initHighlightResize() {
 
   // Show the grips when hovering a highlight in the document
   document_contents.addEventListener('mouseover', function(e) {
-    if(hlResizeDrag || current_document === null) { return; }
+    // Self-heal: if a drag is "active" but no mouse button is pressed, a
+    // pointerup/cancel was missed — clear the stuck state instead of being
+    // blocked forever.
+    if(hlResizeDrag) {
+      if(e.buttons === 0) { cancelHighlightResize(); }
+      else { return; }
+    }
+    if(current_document === null) { return; }
     if(!canEditHighlights()) { return; }
     var hl = e.target.closest ? e.target.closest('.highlight') : null;
     if(hl && hl.getAttribute('data-highlight-id')) {
@@ -2117,17 +2178,22 @@ function startHighlightResize(e) {
   clearTimeout(hlResizeHideTimer);
   hlResizeLayer.classList.add('dragging');   // grips become click-through
   document.body.classList.add('hl-resizing');
+  // Capture the pointer so we always get pointerup/pointercancel, even if the
+  // button is released outside the window (otherwise the drag state stays stuck
+  // and blocks all future hovers).
+  try { this.setPointerCapture(e.pointerId); } catch(err) { /* ignore */ }
+  hlResizeDrag.pointerId = e.pointerId;
+  hlResizeDrag.grip = this;
   // Swallow the click synthesized at the end of the drag (would open the modal)
   document.addEventListener('click', swallowNextClick, true);
   document.addEventListener('pointermove', onHighlightResizeMove);
   document.addEventListener('pointerup', endHighlightResize);
+  document.addEventListener('pointercancel', cancelHighlightResize);
 }
 
 function onHighlightResizeMove(e) {
   if(!hlResizeDrag) { return; }
-  var caret = caretFromPoint(e.clientX, e.clientY);
-  if(!caret) { return; }
-  var pos = describePos(caret[0], caret[1]);
+  var pos = offsetFromPoint(e.clientX, e.clientY);
   if(pos === null) { return; }
   var s = hlResizeDrag.start, en = hlResizeDrag.end;
   if(hlResizeDrag.edge === 'start') {
@@ -2145,19 +2211,41 @@ function onHighlightResizeMove(e) {
   }
 }
 
-function endHighlightResize() {
-  if(!hlResizeDrag) { return; }
-  var drag = hlResizeDrag;
-  hlResizeDrag = null;
+// Tear down all drag listeners/classes (shared by normal end and cancel)
+function cleanupResizeState(drag) {
   document.removeEventListener('pointermove', onHighlightResizeMove);
   document.removeEventListener('pointerup', endHighlightResize);
+  document.removeEventListener('pointercancel', cancelHighlightResize);
   hlResizeLayer.classList.remove('dragging');
   document.body.classList.remove('hl-resizing');
   clearResizePreview();
+  if(drag && drag.grip && drag.pointerId !== undefined) {
+    try { drag.grip.releasePointerCapture(drag.pointerId); } catch(err) { /* ignore */ }
+  }
   // Drop the click-swallower shortly after the (possible) click fires
   setTimeout(function() {
     document.removeEventListener('click', swallowNextClick, true);
   }, 0);
+}
+
+// Abort a drag without saving (pointercancel, or a stale/stuck drag)
+function cancelHighlightResize() {
+  if(!hlResizeDrag) { return; }
+  var drag = hlResizeDrag;
+  hlResizeDrag = null;
+  cleanupResizeState(drag);
+  if(highlights[drag.id]) {
+    positionHighlightHandles([drag.start, drag.end]);
+  } else {
+    hideHighlightHandles();
+  }
+}
+
+function endHighlightResize() {
+  if(!hlResizeDrag) { return; }
+  var drag = hlResizeDrag;
+  hlResizeDrag = null;
+  cleanupResizeState(drag);
 
   var changed = (drag.range[0] !== drag.start || drag.range[1] !== drag.end);
   if(!changed) {
