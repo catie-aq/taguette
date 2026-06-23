@@ -151,6 +151,11 @@ def copy_project(
                 isinstance(v, list)
                 and all(isinstance(e, int) for e in v)
             ),
+            document_tags=lambda v: (
+                isinstance(v, list)
+                and all(isinstance(e, int) for e in v)
+            ),
+            context=lambda v: v is None or isinstance(v, str),
             tag_id=lambda v: isinstance(v, int),
             tag_path=validate.tag_path,
             src_tag_id=lambda v: isinstance(v, int),
@@ -164,6 +169,7 @@ def copy_project(
             tag_id=lambda v: mv(mapping_tags, v),
             src_tag_id=lambda v: mv(mapping_tags, v),
             tags=lambda tags: [mv(mapping_tags, t) for t in tags],
+            document_tags=lambda tags: [mv(mapping_tags, t) for t in tags],
         )
 
         # Map JSON fields

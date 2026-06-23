@@ -54,7 +54,12 @@ taguette --debug                  # starts at http://localhost:7465
 - Serialization to the frontend: each document carries `tags: [tag_id, …]` (`views.py` `Project.get`, and `document_add`/`document_tags` in the event stream). Tags themselves are serialized with only `id/path/description/count` — there is **no** per-tag flag distinguishing document vs highlight tags, so frontend code must never rely on one (an old, never-populated `is_document_tag` field was removed).
 - In the tag (highlights) view, each highlight entry shows its document's tags as `badge-secondary` chips alongside its own highlight-tag chips (`loadTag` in `taguette.js`).
 
-**Highlight tag filter** (`applyHighlightFilters` in `taguette.js`, the "must have" / "must NOT have" dropdowns): filters the *currently displayed* highlights. A filter tag matches a highlight if the tag is on the highlight (`hl.tags`) **OR** on its document (`documents[doc_id].tags`) — see `highlightHasTag()`. This union is what lets a document-only tag (0 highlights of its own) still filter: selecting it in "must have" keeps the highlights of the documents carrying that tag. Include = highlight must match ALL selected tags; exclude = must match NONE. Note the filter only narrows what's already loaded — navigating to a document-only tag in the sidebar (`/api/.../highlights/<tag_path>`) still returns 0 highlights, since that endpoint only returns highlights actually tagged.
+**Highlight tag filter** (the "must have" / "must NOT have" dropdowns in the tag/highlights view) is done **server-side** so pagination and exports stay correct:
+- A filter tag matches a highlight if the tag is on the highlight (`highlight_tags`) **OR** on its document (`document_tags`). This union is what lets a document-only tag (0 highlights of its own) still filter. Include = match ALL selected tags; exclude = match NONE.
+- The SQL is built once by `database.highlight_tag_filter_clauses(include_ids, exclude_ids)` (`database/models.py`) — a list of clauses (correlated `EXISTS` sub-queries) AND-ed into a query over `Highlight`. It works in both ORM queries (`query.filter(*clauses)`) and Core selects (`select.where(clause)`); each `EXISTS` uses `.correlate(highlights)` so the enclosing query's own joins on the junction tables aren't auto-correlated away.
+- Frontend (`taguette.js`): the filter is no longer a client-side CSS hide. `loadTag` sends the active filters as `&include=…&exclude=…` (`filterQueryString()`); changing a filter reloads the view from page 1 (a `suppressFilterReload` guard prevents the dropdown rebuild from re-triggering a reload). The export-dropdown hrefs carry the same query params.
+- Consumers of the filter params: `Highlights.get` in `web/api.py` (paginated view) and `export.highlights_csv` / `highlights_xslx` / `highlights_doc` → `_get_highlights_for_export` in `export.py`, wired through the handlers in `web/export.py` (`parse_tag_filters`).
+- The navigated tag itself (`/api/.../highlights/<tag_path>`) is still highlight-tag based, so clicking a document-only tag in the sidebar returns 0 highlights — use the "must have" filter to see highlights of documents carrying that tag.
 
 **Two runtime modes**:
 - Single-user: `MULTIUSER=False`, auto-login as `admin`, SQLite3, auto-migrate.
@@ -65,7 +70,7 @@ taguette --debug                  # starts at http://localhost:7465
 2. New API endpoint → handler in `web/api.py` + route in `web/__init__.py`
 3. New page → handler in `web/views.py` + template in `templates/` + route
 4. New export → logic in `export.py` + handler in `web/export.py` + route
-5. Notify clients → new type in `Command.TYPES` + factory method + handle in `taguette.js`
+5. Notify clients → new type in `Command.TYPES` + factory method + handle in `taguette.js`. **If you add a payload field to any `Command`, also add a validator for it in `database/copy.py`'s `field_validators` (and a `mapping_tags` transformer if it holds tag IDs, like `tags`/`document_tags`) — otherwise the SQLite3 project export raises `KeyError: '<field>'` while copying the `commands` table.**
 6. Translatable string → `self.gettext()` (Python) or `_()` (JS); run `scripts/update_pot.sh`
 7. New permission → add `can_*` to `Privileges` enum; check in handler
 

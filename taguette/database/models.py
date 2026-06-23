@@ -9,7 +9,7 @@ import logging
 import opentelemetry.trace
 import os
 from sqlalchemy import Column, ForeignKey, Index, TypeDecorator, MetaData, \
-    Table, UniqueConstraint, select
+    Table, UniqueConstraint, select, and_, or_, not_
 from sqlalchemy.dialects import mysql
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import column_property, deferred, relationship
@@ -689,6 +689,52 @@ document_tags = Table(
     Column('tag_id', ForeignKey('tags.id', ondelete='CASCADE'),
            primary_key=True, index=True),
 )
+
+
+def highlight_tag_filter_clauses(include_tag_ids, exclude_tag_ids):
+    """Build clauses to filter highlights by a set of include/exclude tags.
+
+    A tag matches a highlight when it is applied to the highlight itself
+    (``highlight_tags``) OR to the highlight's document (``document_tags``), so
+    a tag used only as a document tag still filters the highlights of the
+    documents it is applied to.
+
+    Returns a list of clauses meant to be AND-ed into a query over
+    ``Highlight``: every include tag must match, and no exclude tag may match.
+    Works with both ORM queries (``query.filter(*clauses)``) and Core selects
+    (``select.where(clause)``) because the ``EXISTS`` sub-queries correlate to
+    the ``highlights`` table of the enclosing query.
+    """
+    highlights = Highlight.__table__
+
+    def matches(tag_id):
+        # Correlate only on `highlights`: the enclosing query may also join the
+        # junction tables (e.g. the export query joins highlight_tags), and
+        # without an explicit correlate() SQLAlchemy would auto-correlate those
+        # out of the EXISTS sub-query, leaving it with no FROM clause.
+        on_highlight = (
+            select([1])
+            .where(and_(
+                highlight_tags.c.highlight_id == highlights.c.id,
+                highlight_tags.c.tag_id == tag_id,
+            ))
+            .correlate(highlights)
+            .exists()
+        )
+        on_document = (
+            select([1])
+            .where(and_(
+                document_tags.c.document_id == highlights.c.document_id,
+                document_tags.c.tag_id == tag_id,
+            ))
+            .correlate(highlights)
+            .exists()
+        )
+        return or_(on_highlight, on_document)
+
+    clauses = [matches(tag_id) for tag_id in include_tag_ids]
+    clauses += [not_(matches(tag_id)) for tag_id in exclude_tag_ids]
+    return clauses
 
 
 Tag.highlights_count = column_property(

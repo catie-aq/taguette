@@ -31,6 +31,27 @@ PROM_EXPORT = prometheus_client.Counter(
 )
 
 
+def parse_tag_filters(handler):
+    """Read the ``include`` / ``exclude`` tag-filter query arguments.
+
+    Returns a ``(include_tag_ids, exclude_tag_ids)`` tuple of int lists, so the
+    export matches the filters active in the on-screen highlights view.
+    """
+    def parse(name):
+        ids = []
+        for part in handler.get_query_argument(name, '').split(','):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                ids.append(int(part, 10))
+            except ValueError:
+                pass
+        return ids
+
+    return parse('include'), parse('exclude')
+
+
 def init_PROM_EXPORT(w):
     for e in convert.html_to_extensions:
         PROM_EXPORT.labels(w, e).inc(0)
@@ -84,11 +105,14 @@ class ExportHighlightsCsv(BaseHandler):
         else:
             self.set_header('Content-Disposition', 'attachment')
 
+        include_tags, exclude_tags = parse_tag_filters(self)
         export.highlights_csv(
             self.db,
             project.id,
             path,
             WriteAdapter(self.write),
+            include_tags,
+            exclude_tags,
         )
         return self.finish()
 
@@ -112,10 +136,14 @@ class ExportHighlightsXlsx(BaseHandler):
         else:
             self.set_header('Content-Disposition', 'attachment')
 
+        include_tags, exclude_tags = parse_tag_filters(self)
         tmp = tempfile.mkdtemp(prefix='taguette_xlsx_')
         try:
             filename = os.path.join(tmp, 'highlights.xlsx')
-            export.highlights_xslx(self.db, project.id, path, filename)
+            export.highlights_xslx(
+                self.db, project.id, path, filename,
+                include_tags, exclude_tags,
+            )
             with open(filename, 'rb') as fp:
                 chunk = fp.read(4096)
                 self.write(chunk)
@@ -142,6 +170,7 @@ class ExportHighlightsDoc(BaseHandler):
         # Close DB connection to not overflow the connection pool
         self.close_db_connection()
 
+        include_tags, exclude_tags = parse_tag_filters(self)
         name = export.get_filename_for_highlights_export(path)
         mimetype, contents = export.highlights_doc(
             self.db,
@@ -150,6 +179,8 @@ class ExportHighlightsDoc(BaseHandler):
             ext,
             config=self.application.config,
             locale=self.locale,
+            include_tag_ids=include_tags,
+            exclude_tag_ids=exclude_tags,
         )
         contents = await contents
         return name, mimetype, contents

@@ -716,6 +716,20 @@ class HighlightUpdate(BaseHandler):
 class Highlights(BaseHandler):
     PAGE_SIZE = 50
 
+    def _parse_tag_ids(self, name):
+        """Parse a comma-separated list of tag IDs from a query argument."""
+        raw = self.get_query_argument(name, '')
+        ids = []
+        for part in raw.split(','):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                ids.append(int(part, 10))
+            except ValueError:
+                pass
+        return ids
+
     @api_auth
     @PROM_REQUESTS.sync('highlights')
     def get(self, project_id, path):
@@ -755,6 +769,16 @@ class Highlights(BaseHandler):
                 .order_by(database.Highlight.document_id,
                           database.Highlight.start_offset)
             )
+
+        # Narrow down by the "must have" / "must NOT have" tag filters. A tag
+        # matches when it is on the highlight itself or on its document, so the
+        # filtered page count stays correct (no empty/missing pages).
+        include_tags = self._parse_tag_ids('include')
+        exclude_tags = self._parse_tag_ids('exclude')
+        if include_tags or exclude_tags:
+            query = query.filter(*database.highlight_tag_filter_clauses(
+                include_tags, exclude_tags,
+            ))
 
         total = query.count()
         highlights = (

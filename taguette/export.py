@@ -71,7 +71,8 @@ class _Translator(object):
         return trans
 
 
-def _get_highlights_for_export(db, project_id, path):
+def _get_highlights_for_export(db, project_id, path,
+                               include_tag_ids=None, exclude_tag_ids=None):
     if path:
         t_highlight = database.Highlight.__table__
         t_highlight_tag = database.highlight_tags
@@ -157,6 +158,13 @@ def _get_highlights_for_export(db, project_id, path):
             )
         )
 
+    # Apply the same "must have" / "must NOT have" tag filters as the view, so
+    # the export matches what the user sees on screen.
+    for clause in database.highlight_tag_filter_clauses(
+        include_tag_ids or [], exclude_tag_ids or [],
+    ):
+        query = query.where(clause)
+
     highlights = []
     for row in db.execute(query).fetchall():
         highlight_id, snippet, document, tag_path = row
@@ -183,10 +191,13 @@ def get_filename_for_highlights_export(path):
 
 
 @tracer.start_as_current_span('taguette/export/highlights_csv')
-def highlights_csv(db, project_id, path, file):
+def highlights_csv(db, project_id, path, file,
+                   include_tag_ids=None, exclude_tag_ids=None):
     """Export highlights to a CSV file.
     """
-    highlights = _get_highlights_for_export(db, project_id, path)
+    highlights = _get_highlights_for_export(
+        db, project_id, path, include_tag_ids, exclude_tag_ids,
+    )
     writer = csv.writer(file)
     writer.writerow(['id', 'document', 'tag', 'content'])
     for id, snippet, document, tags in highlights:
@@ -200,10 +211,13 @@ def highlights_csv(db, project_id, path, file):
 
 
 @tracer.start_as_current_span('taguette/export/highlights_xlsx')
-def highlights_xslx(db, project_id, path, filename):
+def highlights_xslx(db, project_id, path, filename,
+                    include_tag_ids=None, exclude_tag_ids=None):
     """Export highlights to an Excel file.
     """
-    highlights = _get_highlights_for_export(db, project_id, path)
+    highlights = _get_highlights_for_export(
+        db, project_id, path, include_tag_ids, exclude_tag_ids,
+    )
 
     workbook = xlsxwriter.Workbook(filename)
     sheet = workbook.add_worksheet('highlights')
@@ -232,10 +246,13 @@ def highlights_xslx(db, project_id, path, filename):
 
 
 @tracer.start_as_current_span('taguette/export/highlights_doc')
-def highlights_doc(db, project_id, path, ext, *, config, locale):
+def highlights_doc(db, project_id, path, ext, *, config, locale,
+                   include_tag_ids=None, exclude_tag_ids=None):
     """Export highlights to a text document.
     """
-    highlights = _get_highlights_for_export(db, project_id, path)
+    highlights = _get_highlights_for_export(
+        db, project_id, path, include_tag_ids, exclude_tag_ids,
+    )
 
     html = _render_string(
         'export_highlights.html',

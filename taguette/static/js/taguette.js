@@ -1305,12 +1305,38 @@ function removeHighlight(id) {
  * Highlight filtering
  */
 
-var selectedFiltersInclude = {};  // Track tags that must be present
-var selectedFiltersExclude = {};  // Track tags that must not be present
+// Guard so that rebuilding the dropdowns (which re-selects the active tags)
+// doesn't fire onChange and trigger a reload loop.
+var suppressFilterReload = false;
 
 // Tom Select instances for filter
 var tom_select_filter_include = null;
 var tom_select_filter_exclude = null;
+
+// Read the active tag filters from the dropdowns, as arrays of tag IDs.
+function getActiveFilters() {
+  function read(ts) {
+    return (ts ? ts.getValue() : []).map(function(v) { return parseInt(v, 10); });
+  }
+  return {
+    include: read(tom_select_filter_include),
+    exclude: read(tom_select_filter_exclude)
+  };
+}
+
+// Build the "&include=...&exclude=..." query string for the active filters,
+// so pagination and exports stay in sync with what is shown.
+function filterQueryString() {
+  var f = getActiveFilters();
+  var qs = '';
+  if(f.include.length > 0) {
+    qs += '&include=' + encodeURIComponent(f.include.join(','));
+  }
+  if(f.exclude.length > 0) {
+    qs += '&exclude=' + encodeURIComponent(f.exclude.join(','));
+  }
+  return qs;
+}
 
 // Update the filter tags list in the right panel
 function updateFilterTagsList() {
@@ -1359,6 +1385,7 @@ function updateFilterTagsList() {
   // <select> markup when it's created and restores that snapshot on destroy(),
   // so destroying it after a rebuild would wipe the freshly populated options
   // and the preserved selections — making the active filters look reset.
+  suppressFilterReload = true;
   var previousSelectionsInclude = tom_select_filter_include ? tom_select_filter_include.getValue() : [];
   var previousSelectionsExclude = tom_select_filter_exclude ? tom_select_filter_exclude.getValue() : [];
   if(tom_select_filter_include) {
@@ -1407,12 +1434,7 @@ function updateFilterTagsList() {
   // Re-create the Tom Select instances from the rebuilt <option>s (the
   // previously selected tags are marked selected above, so they carry over).
   initializeFilterSelect();
-
-  // Re-apply the (preserved) filter selections to the rebuilt DOM. Without
-  // this, rebuilding the list (e.g. after adding a tag to a highlight in the
-  // tag view, which reloads via loadTag) keeps the dropdown selections but
-  // shows every highlight again, making the active filters look reset.
-  applyHighlightFilters();
+  suppressFilterReload = false;
 }
 
 // Initialize Tom Select for filter
@@ -1432,89 +1454,17 @@ function initializeFilterSelect() {
     hideSelected: false,
     closeOnSelect: false,
     onChange: function() {
-      applyHighlightFilters();
+      if(suppressFilterReload) return;
+      // Filtering is done server-side: reload the current tag view from page 1
+      // so the page count and contents reflect the active filters.
+      if(current_tag !== null) {
+        loadTag(current_tag, 1);
+      }
     }
   };
-  
+
   tom_select_filter_include = new TomSelect(filter_select_include, tom_select_config);
   tom_select_filter_exclude = new TomSelect(filter_select_exclude, tom_select_config);
-}
-
-// Apply/remove filters to highlights
-function applyHighlightFilters() {
-  // Get array of selected filter tag IDs for include
-  var include_filters = (tom_select_filter_include ? tom_select_filter_include.getValue() : [])
-    .map(function(val) { return parseInt(val, 10); });
-  
-  // Get array of selected filter tag IDs for exclude
-  var exclude_filters = (tom_select_filter_exclude ? tom_select_filter_exclude.getValue() : [])
-    .map(function(val) { return parseInt(val, 10); });
-  
-  // If no filters selected, show all highlights
-  if(include_filters.length === 0 && exclude_filters.length === 0) {
-    var elements = document.querySelectorAll('[data-highlight-id]');
-    for(var i = 0; i < elements.length; ++i) {
-      elements[i].classList.remove('highlight-filtered-hidden');
-    }
-    return;
-  }
-  
-  // A filter tag matches a highlight when the tag is applied to the highlight
-  // itself OR to its document (as a "document tag"). This lets a tag used only
-  // as a document tag (0 highlights of its own) still filter the highlights of
-  // the documents it is applied to.
-  function highlightHasTag(hl, tag_id) {
-    if(hl.tags.indexOf(tag_id) !== -1) {
-      return true;
-    }
-    var doc = documents['' + hl.document_id];
-    var doc_tags = (doc && doc.tags) || [];
-    return doc_tags.indexOf(tag_id) !== -1;
-  }
-
-  // Hide/show highlights based on filters
-  var entries = Object.entries(highlights);
-  for(var i = 0; i < entries.length; ++i) {
-    var id = entries[i][0];
-    var hl = entries[i][1];
-    
-    // Get all elements with this highlight ID
-    var elements = document.querySelectorAll('[data-highlight-id="' + id + '"]');
-    
-    if(elements.length === 0) {
-      continue;
-    }
-    
-    // Must have ALL of the include tags (matched as highlight tag or document tag)
-    var has_all_include = true;
-    for(var j = 0; j < include_filters.length; ++j) {
-      if(!highlightHasTag(hl, include_filters[j])) {
-        has_all_include = false;
-        break;
-      }
-    }
-
-    // Must NOT have ANY of the exclude tags (matched as highlight tag or document tag)
-    var has_any_exclude = false;
-    for(var j = 0; j < exclude_filters.length; ++j) {
-      if(highlightHasTag(hl, exclude_filters[j])) {
-        has_any_exclude = true;
-        break;
-      }
-    }
-
-    // Show if it has all include tags and none of the exclude tags
-    var should_show = has_all_include && !has_any_exclude;
-    
-    // Apply filter to all elements with this highlight ID
-    for(var k = 0; k < elements.length; ++k) {
-      if(should_show) {
-        elements[k].classList.remove('highlight-filtered-hidden');
-      } else {
-        elements[k].classList.add('highlight-filtered-hidden');
-      }
-    }
-  }
 }
 
 // Backlight
@@ -2075,7 +2025,6 @@ function loadDocument(document_id, preserve_scroll) {
 
     // The tag filter is only offered in the tag (highlights) view, not while
     // reading a single document.
-    selectedFilters = {};
     var filter_container = document.getElementById('highlights-filter');
     if(filter_container) {
       filter_container.style.display = 'none';
@@ -2114,7 +2063,7 @@ function loadTag(tag_path, page) {
   }
   showSpinner();
   getJSON(
-    '/api/project/' + project_id + '/highlights/' + encodeURIComponent(tag_path) + '?page=' + page
+    '/api/project/' + project_id + '/highlights/' + encodeURIComponent(tag_path) + '?page=' + page + filterQueryString()
   )
   .then(function(result) {
     console.log("Loaded highlights for tag", tag_path || "''");
@@ -2324,20 +2273,22 @@ function loadTag(tag_path, page) {
     updateTagsList();
 
     // Update the filter tags list for tag view
-    selectedFilters = {};
     updateFilterTagsList();
     initializeFilterSelect();
 
-    // Update export button
+    // Update export button. Carry the active tag filters as query params so the
+    // export matches what is shown on screen.
     export_button.style.display = '';
     var items = export_button.getElementsByClassName('dropdown-item');
+    var filter_qs = filterQueryString();
     for(var i = 0; i < items.length; ++i) {
       var ext = items[i].getAttribute('data-extension');
       if(items[i].getAttribute('data-highlights') !== 'false') {
-        items[i].setAttribute(
-          'href',
-          base_path + '/project/' + project_id + '/export/highlights/' + encodeURIComponent(tag_path) + '.' + ext,
-        );
+        var href = base_path + '/project/' + project_id + '/export/highlights/' + encodeURIComponent(tag_path) + '.' + ext;
+        if(filter_qs) {
+          href += '?' + filter_qs.slice(1);  // turn leading "&" into "?"
+        }
+        items[i].setAttribute('href', href);
         items[i].style.display = '';
       } else {
         items[i].style.display = 'none';
