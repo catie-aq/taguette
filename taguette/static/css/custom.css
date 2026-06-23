@@ -484,6 +484,50 @@ a.dropdown-item:hover {
   display: none !important;
 }
 
+/* Drag-to-resize highlights in the document view */
+#hl-resize-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none; /* only the grips are interactive */
+  z-index: 20;
+}
+
+.hl-resize-handle {
+  position: absolute;
+  width: 8px;
+  margin-left: -4px; /* centre the grip on the highlight edge */
+  background-color: #125368;
+  border: 1px solid #fff;
+  border-radius: 2px;
+  box-sizing: border-box;
+  cursor: ew-resize;
+  pointer-events: auto;
+  opacity: 0.85;
+}
+
+.hl-resize-handle:hover {
+  opacity: 1;
+}
+
+/* While dragging, let caretFromPoint hit the text under the grips */
+#hl-resize-layer.dragging .hl-resize-handle {
+  pointer-events: none;
+}
+
+.hl-resize-preview-box {
+  position: absolute;
+  background-color: rgba(18, 83, 104, 0.25);
+  pointer-events: none;
+}
+
+body.hl-resizing,
+body.hl-resizing * {
+  cursor: ew-resize !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* Delete button for tags in tag view */
 .delete-highlight-tag {
   display: inline-flex;

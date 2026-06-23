@@ -415,18 +415,35 @@ function describeSelection() {
   return null;
 }
 
+// Build a DOM Range spanning a described byte range [start, end]
+function rangeForOffsets(saved) {
+  var range = document.createRange();
+  var start = locatePos(saved[0]);
+  var end = locatePos(saved[1]);
+  range.setStart(start[0], start[1]);
+  range.setEnd(end[0], end[1]);
+  return range;
+}
+
 // Restore a described selection
 function restoreSelection(saved) {
   var sel = window.getSelection();
   sel.removeAllRanges();
   if(saved !== null) {
-    var range = document.createRange();
-    var start = locatePos(saved[0]);
-    var end = locatePos(saved[1]);
-    range.setStart(start[0], start[1]);
-    range.setEnd(end[0], end[1]);
-    sel.addRange(range);
+    sel.addRange(rangeForOffsets(saved));
   }
+}
+
+// Map a viewport point to a [node, offset] caret position (cross-browser)
+function caretFromPoint(x, y) {
+  if(document.caretPositionFromPoint) {
+    var pos = document.caretPositionFromPoint(x, y);
+    if(pos) { return [pos.offsetNode, pos.offset]; }
+  } else if(document.caretRangeFromPoint) {
+    var range = document.caretRangeFromPoint(x, y);
+    if(range) { return [range.startContainer, range.startOffset]; }
+  }
+  return null;
 }
 
 function splitAtPos(pos, after) {
@@ -1290,6 +1307,11 @@ function removeHighlight(id) {
   delete highlights[id];
   console.log("Highlight removed:", id);
 
+  // Drop any resize grips shown for this highlight
+  if(typeof hlResizeHoverId !== 'undefined' && hlResizeHoverId === id) {
+    hideHighlightHandles();
+  }
+
   // Loop over highlight-<id> elements
   var elements = document.getElementsByClassName('highlight-' + id);
   for(var i = 0; i < elements.length; ++i) {
@@ -1935,6 +1957,238 @@ function canEditDocuments() {
   return me && (me.privileges === 'ADMIN' || me.privileges === 'MANAGE_DOCS');
 }
 
+// Adding/resizing highlights requires TAG privilege or above
+function canEditHighlights() {
+  var me = members[user_login];
+  return me && (me.privileges === 'ADMIN'
+             || me.privileges === 'MANAGE_DOCS'
+             || me.privileges === 'TAG');
+}
+
+/*
+ * Resizing highlights by dragging their ends in the document view
+ *
+ * On hover, two grips appear at the start/end of a highlight. Dragging a grip
+ * maps the pointer to a byte offset (caretFromPoint -> describePos), previews
+ * the tentative coverage with overlay boxes, and on release POSTs the new
+ * offsets. The authoritative repaint comes back via the highlight_add event.
+ */
+var hlResizeLayer = null, hlResizePreview = null;
+var hlResizeStart = null, hlResizeEnd = null;
+var hlResizeHoverId = null;     // highlight currently showing grips
+var hlResizeHideTimer = null;
+var hlResizeDrag = null;        // {id, edge, start, end, range} while dragging
+
+function initHighlightResize() {
+  hlResizeLayer = document.createElement('div');
+  hlResizeLayer.id = 'hl-resize-layer';
+  hlResizePreview = document.createElement('div');
+  hlResizePreview.id = 'hl-resize-preview';
+  hlResizeStart = document.createElement('div');
+  hlResizeStart.className = 'hl-resize-handle hl-resize-start';
+  hlResizeStart.setAttribute('data-edge', 'start');
+  hlResizeEnd = document.createElement('div');
+  hlResizeEnd.className = 'hl-resize-handle hl-resize-end';
+  hlResizeEnd.setAttribute('data-edge', 'end');
+  hlResizeLayer.appendChild(hlResizePreview);
+  hlResizeLayer.appendChild(hlResizeStart);
+  hlResizeLayer.appendChild(hlResizeEnd);
+  hlResizeLayer.style.display = 'none';
+  document.body.appendChild(hlResizeLayer);
+
+  hlResizeStart.addEventListener('pointerdown', startHighlightResize);
+  hlResizeEnd.addEventListener('pointerdown', startHighlightResize);
+  hlResizeLayer.addEventListener('mouseover', function() {
+    clearTimeout(hlResizeHideTimer);
+  });
+  hlResizeLayer.addEventListener('mouseout', scheduleHideHandles);
+
+  // Show the grips when hovering a highlight in the document
+  document_contents.addEventListener('mouseover', function(e) {
+    if(hlResizeDrag || current_document === null) { return; }
+    if(!canEditHighlights()) { return; }
+    var hl = e.target.closest ? e.target.closest('.highlight') : null;
+    if(hl && hl.getAttribute('data-highlight-id')) {
+      clearTimeout(hlResizeHideTimer);
+      showHighlightHandles(hl.getAttribute('data-highlight-id'));
+    }
+  });
+  document_contents.addEventListener('mouseout', function(e) {
+    if(hlResizeDrag) { return; }
+    if(e.target.closest && e.target.closest('.highlight')) {
+      scheduleHideHandles();
+    }
+  });
+  // Positions are page-absolute, so hide on scroll (re-shown on next hover)
+  window.addEventListener('scroll', function() {
+    if(!hlResizeDrag && hlResizeLayer.style.display !== 'none') {
+      hideHighlightHandles();
+    }
+  });
+}
+
+function scheduleHideHandles() {
+  clearTimeout(hlResizeHideTimer);
+  hlResizeHideTimer = setTimeout(function() {
+    if(!hlResizeDrag) { hideHighlightHandles(); }
+  }, 250);
+}
+
+function hideHighlightHandles() {
+  hlResizeHoverId = null;
+  if(hlResizeLayer) {
+    hlResizeLayer.style.display = 'none';
+    clearResizePreview();
+  }
+}
+
+function showHighlightHandles(id) {
+  if(current_document === null || !highlights[id]) { return; }
+  hlResizeHoverId = id;
+  positionHighlightHandles([highlights[id].start_offset,
+                            highlights[id].end_offset]);
+}
+
+// Get the client rects covering a described byte range, or null
+function rectsForOffsets(saved) {
+  try {
+    var rects = rangeForOffsets(saved).getClientRects();
+    return rects.length ? rects : null;
+  } catch(err) {
+    return null;
+  }
+}
+
+function positionHighlightHandles(saved) {
+  var rects = rectsForOffsets(saved);
+  if(!rects) { hideHighlightHandles(); return; }
+  var first = rects[0], last = rects[rects.length - 1];
+  hlResizeLayer.style.display = '';
+  placeHandle(hlResizeStart, first.left, first.top, first.height);
+  placeHandle(hlResizeEnd, last.right, last.top, last.height);
+}
+
+function placeHandle(handle, clientX, clientY, height) {
+  handle.style.left = (clientX + window.scrollX) + 'px';
+  handle.style.top = (clientY + window.scrollY) + 'px';
+  handle.style.height = height + 'px';
+}
+
+// Draw translucent overlay boxes over the tentative coverage during a drag
+function drawResizePreview(rects) {
+  var i, box;
+  for(i = 0; i < rects.length; ++i) {
+    box = hlResizePreview.childNodes[i];
+    if(!box) {
+      box = document.createElement('div');
+      box.className = 'hl-resize-preview-box';
+      hlResizePreview.appendChild(box);
+    }
+    box.style.left = (rects[i].left + window.scrollX) + 'px';
+    box.style.top = (rects[i].top + window.scrollY) + 'px';
+    box.style.width = rects[i].width + 'px';
+    box.style.height = rects[i].height + 'px';
+    box.style.display = '';
+  }
+  for(; i < hlResizePreview.childNodes.length; ++i) {
+    hlResizePreview.childNodes[i].style.display = 'none';
+  }
+}
+
+function clearResizePreview() {
+  if(!hlResizePreview) { return; }
+  for(var i = 0; i < hlResizePreview.childNodes.length; ++i) {
+    hlResizePreview.childNodes[i].style.display = 'none';
+  }
+}
+
+function startHighlightResize(e) {
+  if(hlResizeHoverId === null || !highlights[hlResizeHoverId]) { return; }
+  e.preventDefault();
+  e.stopPropagation();
+  var hl = highlights[hlResizeHoverId];
+  hlResizeDrag = {
+    id: hlResizeHoverId,
+    edge: this.getAttribute('data-edge'),
+    start: hl.start_offset,
+    end: hl.end_offset,
+    range: [hl.start_offset, hl.end_offset]
+  };
+  clearTimeout(hlResizeHideTimer);
+  hlResizeLayer.classList.add('dragging');   // grips become click-through
+  document.body.classList.add('hl-resizing');
+  // Swallow the click synthesized at the end of the drag (would open the modal)
+  document.addEventListener('click', swallowNextClick, true);
+  document.addEventListener('pointermove', onHighlightResizeMove);
+  document.addEventListener('pointerup', endHighlightResize);
+}
+
+function onHighlightResizeMove(e) {
+  if(!hlResizeDrag) { return; }
+  var caret = caretFromPoint(e.clientX, e.clientY);
+  if(!caret) { return; }
+  var pos = describePos(caret[0], caret[1]);
+  if(pos === null) { return; }
+  var s = hlResizeDrag.start, en = hlResizeDrag.end;
+  if(hlResizeDrag.edge === 'start') {
+    s = Math.max(0, Math.min(pos, en - 1));   // keep at least 1 byte, don't cross end
+  } else {
+    en = Math.max(pos, s + 1);
+  }
+  hlResizeDrag.range = [s, en];
+  var rects = rectsForOffsets([s, en]);
+  if(rects) {
+    drawResizePreview(rects);
+    var first = rects[0], last = rects[rects.length - 1];
+    placeHandle(hlResizeStart, first.left, first.top, first.height);
+    placeHandle(hlResizeEnd, last.right, last.top, last.height);
+  }
+}
+
+function endHighlightResize() {
+  if(!hlResizeDrag) { return; }
+  var drag = hlResizeDrag;
+  hlResizeDrag = null;
+  document.removeEventListener('pointermove', onHighlightResizeMove);
+  document.removeEventListener('pointerup', endHighlightResize);
+  hlResizeLayer.classList.remove('dragging');
+  document.body.classList.remove('hl-resizing');
+  clearResizePreview();
+  // Drop the click-swallower shortly after the (possible) click fires
+  setTimeout(function() {
+    document.removeEventListener('click', swallowNextClick, true);
+  }, 0);
+
+  var changed = (drag.range[0] !== drag.start || drag.range[1] !== drag.end);
+  if(!changed) {
+    positionHighlightHandles([drag.start, drag.end]);
+    return;
+  }
+  // Keep the grips at the new edges; the highlight_add event repaints the span.
+  hlResizeHoverId = drag.id;
+  positionHighlightHandles(drag.range);
+  postJSON(
+    '/api/project/' + project_id + '/document/' + current_document
+      + '/highlight/' + drag.id,
+    {start_offset: drag.range[0], end_offset: drag.range[1]}
+  )
+  .catch(function(error) {
+    console.error("Failed to resize highlight:", error);
+    alert(gettext("Couldn't resize highlight!") + "\n\n" + error);
+    if(highlights[drag.id]) {
+      positionHighlightHandles([drag.start, drag.end]);
+    }
+  });
+}
+
+function swallowNextClick(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  document.removeEventListener('click', swallowNextClick, true);
+}
+
+initHighlightResize();
+
 // Show/reset the edit controls for the document that was just loaded
 function resetEditControls(has_highlights) {
   document_has_highlights = !!has_highlights;
@@ -2055,6 +2309,7 @@ function loadDocument(document_id, preserve_scroll) {
   .then(function(results) {
     var info = results[0];
     var contents = results[1];
+    hideHighlightHandles();
     document_contents.innerHTML = '';
     highlights = {};
     chunk_offsets = [];
@@ -2166,6 +2421,7 @@ function loadTag(tag_path, page, preserveScroll) {
       document_links[i].classList.remove('document-link-current');
     }
     // No need to clear the 'tag-current', we are calling updateTagsList() below
+    hideHighlightHandles();
     document_contents.innerHTML = '';
     highlights = {};
     for(var i = 0; i < result.highlights.length; ++i) {

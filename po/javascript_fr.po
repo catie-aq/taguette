@@ -198,3 +198,7 @@ msgstr "Annuler"
 #: taguette/static/js/taguette.js:1631
 msgid "Couldn't edit highlight text!"
 msgstr "Impossible de modifier le texte de la marque !"
+
+#: taguette/static/js/taguette.js:2177
+msgid "Couldn't resize highlight!"
+msgstr "Impossible de redimensionner la marque !"

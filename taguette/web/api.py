@@ -642,6 +642,18 @@ class HighlightUpdate(BaseHandler):
                 hl.start_offset = obj['start_offset']
             if 'end_offset' in obj:
                 hl.end_offset = obj['end_offset']
+            if 'start_offset' in obj or 'end_offset' in obj:
+                # The covered text changed: recompute the snippet (used by the
+                # tag view and exports) and reject an empty/degenerate range.
+                if hl.end_offset <= hl.start_offset:
+                    return self.send_error_json(
+                        400, self.gettext("Empty highlight"))
+                snippet = extract.extract(
+                    document.contents, hl.start_offset, hl.end_offset)
+                if all(c in '\r\n\t' for c in snippet):
+                    return self.send_error_json(
+                        400, self.gettext("Empty highlight"))
+                hl.snippet = snippet
             if 'context' in obj:
                 hl.context = obj['context'] or None
             if 'tags' in obj:
