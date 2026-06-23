@@ -1378,12 +1378,8 @@ function updateFilterTagsList() {
     
     var option = document.createElement('option');
     option.value = tag_id;
-    var label = tag.path;
-    if(tag.is_document_tag) {
-      label += ' (doc)';
-    }
-    option.textContent = label;
-    
+    option.textContent = tag.path;
+
     if(previousSelectionsInclude.indexOf('' + tag_id) !== -1) {
       option.selected = true;
     }
@@ -1399,12 +1395,8 @@ function updateFilterTagsList() {
     
     var option = document.createElement('option');
     option.value = tag_id;
-    var label = tag.path;
-    if(tag.is_document_tag) {
-      label += ' (doc)';
-    }
-    option.textContent = label;
-    
+    option.textContent = tag.path;
+
     if(previousSelectionsExclude.indexOf('' + tag_id) !== -1) {
       option.selected = true;
     }
@@ -1467,27 +1459,19 @@ function applyHighlightFilters() {
     return;
   }
   
-  // Separate filters into highlight tags and document tags
-  var include_highlight_tags = [];
-  var include_document_tags = [];
-  for(var i = 0; i < include_filters.length; ++i) {
-    if(tags[include_filters[i]] && tags[include_filters[i]].is_document_tag) {
-      include_document_tags.push(include_filters[i]);
-    } else {
-      include_highlight_tags.push(include_filters[i]);
+  // A filter tag matches a highlight when the tag is applied to the highlight
+  // itself OR to its document (as a "document tag"). This lets a tag used only
+  // as a document tag (0 highlights of its own) still filter the highlights of
+  // the documents it is applied to.
+  function highlightHasTag(hl, tag_id) {
+    if(hl.tags.indexOf(tag_id) !== -1) {
+      return true;
     }
+    var doc = documents['' + hl.document_id];
+    var doc_tags = (doc && doc.tags) || [];
+    return doc_tags.indexOf(tag_id) !== -1;
   }
-  
-  var exclude_highlight_tags = [];
-  var exclude_document_tags = [];
-  for(var i = 0; i < exclude_filters.length; ++i) {
-    if(tags[exclude_filters[i]] && tags[exclude_filters[i]].is_document_tag) {
-      exclude_document_tags.push(exclude_filters[i]);
-    } else {
-      exclude_highlight_tags.push(exclude_filters[i]);
-    }
-  }
-  
+
   // Hide/show highlights based on filters
   var entries = Object.entries(highlights);
   for(var i = 0; i < entries.length; ++i) {
@@ -1501,48 +1485,26 @@ function applyHighlightFilters() {
       continue;
     }
     
-    // Check if highlight has ALL of the include highlight tags
-    var has_all_include_highlight_tags = true;
-    for(var j = 0; j < include_highlight_tags.length; ++j) {
-      if(hl.tags.indexOf(include_highlight_tags[j]) === -1) {
-        has_all_include_highlight_tags = false;
+    // Must have ALL of the include tags (matched as highlight tag or document tag)
+    var has_all_include = true;
+    for(var j = 0; j < include_filters.length; ++j) {
+      if(!highlightHasTag(hl, include_filters[j])) {
+        has_all_include = false;
         break;
       }
     }
-    
-    // Check if highlight has ANY of the exclude highlight tags
-    var has_any_exclude_highlight_tags = false;
-    for(var j = 0; j < exclude_highlight_tags.length; ++j) {
-      if(hl.tags.indexOf(exclude_highlight_tags[j]) !== -1) {
-        has_any_exclude_highlight_tags = true;
+
+    // Must NOT have ANY of the exclude tags (matched as highlight tag or document tag)
+    var has_any_exclude = false;
+    for(var j = 0; j < exclude_filters.length; ++j) {
+      if(highlightHasTag(hl, exclude_filters[j])) {
+        has_any_exclude = true;
         break;
       }
     }
-    
-    // Check if document has ALL of the include document tags
-    var has_all_include_document_tags = true;
-    var doc_tags = (documents['' + hl.document_id].tags || []);
-    for(var j = 0; j < include_document_tags.length; ++j) {
-      if(doc_tags.indexOf(include_document_tags[j]) === -1) {
-        has_all_include_document_tags = false;
-        break;
-      }
-    }
-    
-    // Check if document has ANY of the exclude document tags
-    var has_any_exclude_document_tags = false;
-    for(var j = 0; j < exclude_document_tags.length; ++j) {
-      if(doc_tags.indexOf(exclude_document_tags[j]) !== -1) {
-        has_any_exclude_document_tags = true;
-        break;
-      }
-    }
-    
-    // Show if:
-    // - Has ALL include tags (if any include tags are selected)
-    // - AND doesn't have ANY exclude tags (if any exclude tags are selected)
-    var should_show = has_all_include_highlight_tags && !has_any_exclude_highlight_tags &&
-                      has_all_include_document_tags && !has_any_exclude_document_tags;
+
+    // Show if it has all include tags and none of the exclude tags
+    var should_show = has_all_include && !has_any_exclude;
     
     // Apply filter to all elements with this highlight ID
     for(var k = 0; k < elements.length; ++k) {
