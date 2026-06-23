@@ -2,7 +2,7 @@ import logging
 import opentelemetry.trace
 
 from .models import Project, Privileges, ProjectMember, TextDirection, \
-    Document, Command, Highlight, Tag, highlight_tags
+    Document, Command, Highlight, Tag, highlight_tags, document_tags
 from .. import convert
 from ..utils import DefaultMap
 from .. import validate
@@ -103,6 +103,14 @@ def copy_project(
         dict(highlight_id=mapping_highlights, tag_id=mapping_tags),
         200,
         condition=highlight_tags.c.tag_id.in_(mapping_tags.keys()),
+    )
+
+    # Copy document tags
+    copy(
+        document_tags, None,
+        dict(document_id=mapping_document, tag_id=mapping_tags),
+        200,
+        condition=document_tags.c.tag_id.in_(mapping_tags.keys()),
     )
 
     def validate_text_direction(direction):
