@@ -178,3 +178,7 @@ msgid ""
 msgstr ""
 "Vous avez des modifications non enregistrées sur ce document. Êtes-vous sûr "
 "de vouloir les abandonner ?"
+
+#: taguette/static/js/taguette.js:2207
+msgid "Showing %(count)s of %(total)s highlights"
+msgstr "Affichage de %(count)s marques sur %(total)s"

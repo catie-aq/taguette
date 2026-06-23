@@ -803,6 +803,7 @@ class Highlights(BaseHandler):
                 for hl, direction in highlights
             ],
             'pages': math.ceil(total / self.PAGE_SIZE),
+            'total': total,
         })
 
 

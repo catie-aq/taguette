@@ -2206,6 +2206,16 @@ function loadTag(tag_path, page) {
     }
     if(result.highlights.length == 0) {
       document_contents.innerHTML = '<p style="font-style: oblique; text-align: center;">' + gettext("No highlights with this tag yet.") + '</p>';
+    } else {
+      // Show how many highlights are on this page out of the (filtered) total.
+      var total = (result.total !== undefined) ? result.total : result.highlights.length;
+      var countDiv = document.createElement('div');
+      countDiv.className = 'highlights-count text-muted mb-2';
+      countDiv.textContent = gettext(
+        "Showing %(count)s of %(total)s highlights",
+        {count: result.highlights.length, total: total}
+      );
+      document_contents.insertBefore(countDiv, document_contents.firstChild);
     }
 
     // Pagination controls

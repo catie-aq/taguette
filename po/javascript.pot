@@ -170,3 +170,7 @@ msgid ""
 "them?"
 msgstr ""
 
+#: taguette/static/js/taguette.js:2207
+msgid "Showing %(count)s of %(total)s highlights"
+msgstr ""
+
