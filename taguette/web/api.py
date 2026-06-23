@@ -273,6 +273,97 @@ class Document(BaseHandler):
         return self.finish()
 
 
+def replace_document_contents(handler, document, html, edited_highlight_id=None):
+    """Store ``html`` as a document's contents, remapping every highlight.
+
+    Sanitizes ``html``, replaces ``document.contents`` with it, and remaps each
+    highlight onto the new text (deleting any whose text was removed entirely),
+    then commits and notifies the project. Returns ``True`` on success, or
+    ``False`` after sending a 400 when the sanitized content is empty.
+
+    Shared by the full-document content edit (:class:`DocumentContents`) and the
+    per-highlight text edit (:class:`HighlightText`), so both go through the same
+    tested remap path.
+
+    ``edited_highlight_id`` is set by the per-highlight edit: that highlight's
+    text was replaced in place, so instead of the diff-based remap (which would
+    leave text appended at its boundary *outside* the highlight) its range is
+    forced to cover exactly the new text. Since the edit only touches that one
+    region, the document text's net length change equals that highlight's own
+    length change, so its new end is ``old_end + (len(new) - len(old))``.
+    """
+    db = handler.db
+
+    # Sanitize the same way imported documents are
+    contents = convert.get_html_body(html)
+    if not contents.strip():
+        handler.send_error_json(
+            400,
+            handler.gettext("Document content can't be empty"),
+        )
+        return False
+
+    # Highlights are byte ranges into the document text. Editing the text
+    # shifts those ranges, so rather than forbidding the change we remap every
+    # existing highlight onto the new text. A highlight whose text is removed
+    # entirely is deleted.
+    highlights = (
+        db.query(database.Highlight)
+        .options(joinedload(database.Highlight.tags))
+        .options(defer('snippet'))
+        .filter(database.Highlight.document_id == document.id)
+        .order_by(database.Highlight.start_offset)
+        .all()
+    )
+    commands = []
+    if highlights:
+        old_text = extract.document_text(document.contents)
+        new_text = extract.document_text(contents)
+        remapped = extract.remap_highlights(
+            old_text,
+            new_text,
+            [(hl.start_offset, hl.end_offset) for hl in highlights],
+        )
+        delta = len(new_text) - len(old_text)
+        for hl, new_range in zip(highlights, remapped):
+            if hl.id == edited_highlight_id:
+                # Force the edited highlight to span exactly its new text.
+                forced_end = hl.end_offset + delta
+                new_range = ((hl.start_offset, forced_end)
+                             if forced_end > hl.start_offset else None)
+            if new_range is None:
+                # The highlighted text was removed by the edit
+                old_tags = [t.id for t in hl.tags]
+                cmd = database.Command.highlight_delete(
+                    handler.current_user, document, hl.id,
+                )
+                cmd.tag_count_changes = {tag: -1 for tag in old_tags}
+                commands.append(cmd)
+                db.delete(hl)
+                continue
+            # Only recompute the (potentially large) snippet when the
+            # highlighted bytes actually changed; a shift alone leaves the
+            # extracted text identical.
+            old_bytes = old_text[hl.start_offset:hl.end_offset]
+            new_bytes = new_text[new_range[0]:new_range[1]]
+            hl.start_offset, hl.end_offset = new_range
+            if new_bytes != old_bytes:
+                hl.snippet = extract.extract(contents, *new_range)
+
+    document.contents = contents
+    commands.append(database.Command.document_change_content(
+        handler.current_user,
+        document,
+    ))
+    for cmd in commands:
+        db.add(cmd)
+    db.commit()
+    for cmd in commands:
+        db.refresh(cmd)
+        handler.application.notify_project(document.project_id, cmd)
+    return True
+
+
 class DocumentContents(BaseHandler):
     # If we ever change the format of this response, bump this constant so
     # that stale cached copies are invalidated
@@ -318,66 +409,8 @@ class DocumentContents(BaseHandler):
 
         obj = self.get_json()
         html = obj.get('contents', '') if obj else ''
-        # Sanitize the same way imported documents are
-        contents = convert.get_html_body(html)
-        if not contents.strip():
-            return self.send_error_json(
-                400,
-                self.gettext("Document content can't be empty"),
-            )
-
-        # Highlights are byte ranges into the document text. Editing the text
-        # shifts those ranges, so rather than forbidding the change we remap
-        # every existing highlight onto the new text. A highlight whose text is
-        # removed entirely is deleted.
-        highlights = (
-            self.db.query(database.Highlight)
-            .options(joinedload(database.Highlight.tags))
-            .options(defer('snippet'))
-            .filter(database.Highlight.document_id == document.id)
-            .order_by(database.Highlight.start_offset)
-            .all()
-        )
-        commands = []
-        if highlights:
-            old_text = extract.document_text(document.contents)
-            new_text = extract.document_text(contents)
-            remapped = extract.remap_highlights(
-                old_text,
-                new_text,
-                [(hl.start_offset, hl.end_offset) for hl in highlights],
-            )
-            for hl, new_range in zip(highlights, remapped):
-                if new_range is None:
-                    # The highlighted text was removed by the edit
-                    old_tags = [t.id for t in hl.tags]
-                    cmd = database.Command.highlight_delete(
-                        self.current_user, document, hl.id,
-                    )
-                    cmd.tag_count_changes = {tag: -1 for tag in old_tags}
-                    commands.append(cmd)
-                    self.db.delete(hl)
-                    continue
-                # Only recompute the (potentially large) snippet when the
-                # highlighted bytes actually changed; a shift alone leaves the
-                # extracted text identical.
-                old_bytes = old_text[hl.start_offset:hl.end_offset]
-                new_bytes = new_text[new_range[0]:new_range[1]]
-                hl.start_offset, hl.end_offset = new_range
-                if new_bytes != old_bytes:
-                    hl.snippet = extract.extract(contents, *new_range)
-
-        document.contents = contents
-        commands.append(database.Command.document_change_content(
-            self.current_user,
-            document,
-        ))
-        for cmd in commands:
-            self.db.add(cmd)
-        self.db.commit()
-        for cmd in commands:
-            self.db.refresh(cmd)
-            self.application.notify_project(document.project_id, cmd)
+        if not replace_document_contents(self, document, html):
+            return
         return self.send_json({'id': document.id})
 
 
@@ -711,6 +744,37 @@ class HighlightUpdate(BaseHandler):
 
         self.set_status(204)
         return self.finish()
+
+
+class HighlightText(BaseHandler):
+    """Edit the text of a single highlight from the highlights view.
+
+    Splices the new text into the document at the highlight's byte range, then
+    reuses the same store-and-remap path as a full document content edit, so the
+    other highlights in the document are repositioned automatically.
+    """
+    @api_auth
+    @PROM_REQUESTS.sync('highlight_set_text')
+    def post(self, project_id, document_id, highlight_id):
+        document, privileges = self.get_document(project_id, document_id, True)
+        if not privileges.can_edit_document():
+            return self.send_error_json(403, self.gettext("Unauthorized"))
+        hl = self.db.query(database.Highlight).get(int(highlight_id))
+        if hl is None or hl.document_id != document.id:
+            return self.send_error_json(404, self.gettext("No such highlight"))
+
+        obj = self.get_json()
+        new_text = obj.get('text', '') if obj else ''
+        new_html = extract.splice_text(
+            document.contents,
+            hl.start_offset, hl.end_offset,
+            new_text,
+        )
+        if not replace_document_contents(
+            self, document, new_html, edited_highlight_id=hl.id,
+        ):
+            return
+        return self.send_json({'id': document.id})
 
 
 class Highlights(BaseHandler):

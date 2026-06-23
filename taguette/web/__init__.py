@@ -171,6 +171,9 @@ def make_app(config, debug=False, xsrf_cookies=True):
         UnbakedURLSpec('/api/project/([0-9]+)/document/([0-9]+)/highlight/new',
                        api.HighlightAdd),
         UnbakedURLSpec(
+            '/api/project/([0-9]+)/document/([0-9]+)/highlight/([0-9]+)/text',
+            api.HighlightText),
+        UnbakedURLSpec(
             '/api/project/([0-9]+)/document/([0-9]+)/highlight/([0-9]+)',
             api.HighlightUpdate),
         UnbakedURLSpec('/api/project/([0-9]+)/highlights/(.*)',

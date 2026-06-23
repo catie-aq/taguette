@@ -389,6 +389,20 @@ a.dropdown-item:hover {
   margin-left: 0.5rem;
 }
 
+.highlight-text-edit,
+.highlight-text-save,
+.highlight-text-cancel {
+  float: right;
+  margin-left: 0.5rem;
+}
+
+.highlight-snippet.editing {
+  outline: 2px dashed #007bff;
+  outline-offset: 4px;
+  background-color: #fffdf5;
+  min-height: 1.5em;
+}
+
 .highlight-context {
   margin-top: 0.5rem;
   padding: 0.4rem 0.6rem;

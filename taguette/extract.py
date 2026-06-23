@@ -253,6 +253,69 @@ def byte_to_str_index(string, byte_index):
     return len(string)
 
 
+@tracer.start_as_current_span('taguette/splice_text')
+def splice_text(html, start, end, new_text):
+    """Replace the document text in byte range ``[start, end)`` with new_text.
+
+    Offsets are UTF-8 byte positions over the document text (the same basis as
+    highlight offsets, see :func:`document_text`). The surrounding HTML
+    structure is preserved; ``new_text`` is inserted as plain text. Returns the
+    new HTML (body contents), suitable to store as a document's contents.
+
+    This is the inverse of :func:`extract`: instead of pulling the snippet out,
+    it swaps the snippet's text in place, leaving the rest of the document
+    untouched so the other highlights only shift (and get remapped) rather than
+    losing their surrounding markup.
+
+    >>> splice_text('<p>Hello world</p>', 6, 11, 'there')
+    '<p>Hello there</p>'
+    """
+    soup = BeautifulSoup(html, 'html5lib')
+
+    # Map each text node to its byte span, in document order — the same walk
+    # document_text() uses, so the offsets line up with the highlight offsets.
+    nodes = []
+    offset = 0
+    for s in soup.strings:
+        nb = len(s.encode('utf-8'))
+        nodes.append((s, offset, offset + nb))
+        offset += nb
+    total = offset
+
+    start = max(0, min(start, total))
+    end = max(start, min(end, total))
+
+    inserted = False
+    for node, n_start, n_end in nodes:
+        if n_end <= start or n_start >= end:
+            continue  # node entirely outside the edited range
+        s = str(node)
+        keep_left = s[:byte_to_str_index(s, start - n_start)] if start > n_start \
+            else ''
+        keep_right = s[byte_to_str_index(s, end - n_start):] if end < n_end \
+            else ''
+        if not inserted:
+            # Insert the whole replacement in the first touched node, so it
+            # stays inside that node's surrounding tags.
+            replacement = keep_left + new_text + keep_right
+            inserted = True
+        else:
+            replacement = keep_left + keep_right
+        node.replace_with(NavigableString(replacement))
+
+    if not inserted and new_text:
+        # Range was empty and at the very end of the text: append the new text.
+        target = soup.body if soup.body is not None else soup
+        target.append(NavigableString(new_text))
+
+    # Keep only the body contents, like extract()/highlight().
+    body = soup.body
+    soup.clear()
+    soup.append(body)
+    soup.body.unwrap()
+    return str(soup)
+
+
 @tracer.start_as_current_span('taguette/highlight')
 @PROM_HIGHLIGHT_TIME.time()
 def highlight(html, highlights, show_tags=False):

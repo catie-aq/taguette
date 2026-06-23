@@ -556,6 +556,7 @@ project_description_input.addEventListener('blur', projectMetadataChanged);
 
 var current_document = null;
 var current_tag = null;
+var current_tag_page = 1;
 var last_added_tag = null;
 var documents_list = document.getElementById('documents-list');
 
@@ -1571,6 +1572,84 @@ function editHighlightFromTagView() {
   document.getElementById('highlight-search').focus();
 }
 
+/*
+ * Editing a highlight's text inline, from the highlights view.
+ *
+ * The snippet becomes editable; on save we send the new plain text to the
+ * server, which splices it into the document at the highlight's byte range and
+ * repositions every other highlight in that document (same remap path as a full
+ * document content edit). On cancel we just restore the original snippet.
+ */
+function toggleEditTextButtons(entry, editing) {
+  var map = {
+    '.highlight-text-edit': !editing,
+    '.highlight-entry-edit': !editing,  // also hide "Add tag" while editing
+    '.highlight-text-save': editing,
+    '.highlight-text-cancel': editing
+  };
+  for(var sel in map) {
+    var btn = entry.querySelector(sel);
+    if(btn) { btn.style.display = map[sel] ? '' : 'none'; }
+  }
+}
+
+function startEditHighlightText() {
+  var entry = this.closest('.highlight-entry');
+  var snippet = entry.querySelector('.highlight-snippet');
+  // Keep the original markup so Cancel can restore it exactly.
+  snippet.setAttribute('data-orig-html', snippet.innerHTML);
+  snippet.setAttribute('data-orig-text', snippet.textContent);
+  snippet.contentEditable = 'true';
+  snippet.classList.add('editing');
+  toggleEditTextButtons(entry, true);
+  snippet.focus();
+}
+
+function cancelEditHighlightText() {
+  var entry = this.closest('.highlight-entry');
+  var snippet = entry.querySelector('.highlight-snippet');
+  snippet.innerHTML = snippet.getAttribute('data-orig-html');
+  snippet.contentEditable = 'false';
+  snippet.classList.remove('editing');
+  toggleEditTextButtons(entry, false);
+}
+
+function saveEditHighlightText() {
+  var entry = this.closest('.highlight-entry');
+  var snippet = entry.querySelector('.highlight-snippet');
+  var doc_id = this.getAttribute('data-document-id');
+  var hl_id = this.getAttribute('data-highlight-id');
+  var new_text = snippet.textContent;
+  var original = snippet.getAttribute('data-orig-text');
+  snippet.contentEditable = 'false';
+  snippet.classList.remove('editing');
+  if(new_text === original) {
+    // Nothing changed: just restore the original markup and controls.
+    snippet.innerHTML = snippet.getAttribute('data-orig-html');
+    toggleEditTextButtons(entry, false);
+    return;
+  }
+  // Capture the scroll position now, before showSpinner() opens the modal that
+  // sets overflow:hidden on <body> and resets the readable scroll to 0.
+  var scrollPos = getScrollPos();
+  showSpinner();
+  postJSON(
+    '/api/project/' + project_id + '/document/' + doc_id + '/highlight/' + hl_id + '/text',
+    {text: new_text}
+  )
+  .then(function() {
+    // Reload the current page of the tag view to reflect remapped highlights,
+    // keeping the user's scroll position instead of jumping to the top.
+    loadTag(current_tag, current_tag_page, scrollPos);
+  })
+  .catch(function(error) {
+    console.error("Failed to edit highlight text:", error);
+    alert(gettext("Couldn't edit highlight text!") + "\n\n" + error);
+    loadTag(current_tag, current_tag_page, scrollPos);
+  })
+  .then(hideSpinner);
+}
+
 // Save highlight button
 document.getElementById('highlight-add-form').addEventListener('submit', function(e) {
   e.preventDefault();
@@ -2057,9 +2136,18 @@ function loadDocument(document_id, preserve_scroll) {
   .then(hideSpinner);
 }
 
-function loadTag(tag_path, page) {
+function loadTag(tag_path, page, preserveScroll) {
   if(page === undefined) {
     page = 1;
+  }
+  current_tag_page = page;
+  // When reloading in place (e.g. after editing a highlight's text) we keep the
+  // current scroll position instead of jumping back to the top of the list.
+  // preserveScroll may be an explicit {x, y} (captured by the caller before a
+  // spinner modal reset the body scroll) or simply truthy to capture it now.
+  var savedScroll = null;
+  if(preserveScroll) {
+    savedScroll = (typeof preserveScroll === 'object') ? preserveScroll : getScrollPos();
   }
   showSpinner();
   getJSON(
@@ -2084,6 +2172,7 @@ function loadTag(tag_path, page) {
       var hl = result.highlights[i];
       highlights['' + hl.id] = hl;
       var content = document.createElement('div');
+      content.className = 'highlight-snippet';
       if(hl.text_direction === 'RIGHT_TO_LEFT') {
         content.style.direction = 'rtl';
       } else {
@@ -2104,6 +2193,34 @@ function loadTag(tag_path, page) {
       editbtn.setAttribute('data-document-id', hl.document_id);
       editbtn.addEventListener('click', editHighlightFromTagView);
       elem.appendChild(editbtn);
+
+      // Edit the highlighted text directly: editing it splices the new text
+      // into the document and repositions the other highlights server-side.
+      if(canEditDocuments()) {
+        var editTextBtn = document.createElement('button');
+        editTextBtn.className = 'btn btn-sm btn-outline-secondary highlight-text-edit';
+        editTextBtn.textContent = gettext("Edit text");
+        editTextBtn.setAttribute('data-document-id', hl.document_id);
+        editTextBtn.setAttribute('data-highlight-id', hl.id);
+        editTextBtn.addEventListener('click', startEditHighlightText);
+        elem.appendChild(editTextBtn);
+
+        var saveTextBtn = document.createElement('button');
+        saveTextBtn.className = 'btn btn-sm btn-success highlight-text-save';
+        saveTextBtn.textContent = gettext("Save");
+        saveTextBtn.style.display = 'none';
+        saveTextBtn.setAttribute('data-document-id', hl.document_id);
+        saveTextBtn.setAttribute('data-highlight-id', hl.id);
+        saveTextBtn.addEventListener('click', saveEditHighlightText);
+        elem.appendChild(saveTextBtn);
+
+        var cancelTextBtn = document.createElement('button');
+        cancelTextBtn.className = 'btn btn-sm btn-secondary highlight-text-cancel';
+        cancelTextBtn.textContent = gettext("Cancel");
+        cancelTextBtn.style.display = 'none';
+        cancelTextBtn.addEventListener('click', cancelEditHighlightText);
+        elem.appendChild(cancelTextBtn);
+      }
 
       var doclink = document.createElement('a');
       doclink.className = 'badge badge-light';
@@ -2305,8 +2422,13 @@ function loadTag(tag_path, page) {
       }
     }
 
-    // Scroll up
-    window.setTimeout(function() { window.scrollTo(0, 0); }, 0);
+    // Scroll up — unless we are reloading in place, in which case restore the
+    // position the user was at before the reload.
+    if(savedScroll) {
+      window.setTimeout(function() { window.scrollTo(savedScroll.x, savedScroll.y); }, 0);
+    } else {
+      window.setTimeout(function() { window.scrollTo(0, 0); }, 0);
+    }
   })
   .catch(function(error) {
     console.error("Failed to load tag highlights:", error);

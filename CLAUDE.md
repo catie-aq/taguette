@@ -46,6 +46,11 @@ taguette --debug                  # starts at http://localhost:7465
 - Performance: edits are localized, so `remap_highlights` first trims the shared common prefix/suffix (binary-searched via `_common_prefix_len`/`_common_suffix_len`) and only diffs the changed middle region — avoiding a full-document diff on large texts.
 - The handler only recomputes a highlight's `snippet` (`extract.extract`) when the highlighted bytes actually changed; a pure positional shift leaves the extracted text identical.
 - Each remap/delete produces its own `Command`, all committed together and broadcast via `notify_project`. On the frontend (`taguette.js`), `highlight_add`/`highlight_delete` events update positions live; in the tag (highlights) view the active tag filters are preserved across the reload.
+- The store-and-remap body is factored into `replace_document_contents(handler, document, html, edited_highlight_id=None)` in `web/api.py`, shared by the full-document edit and the per-highlight edit below.
+
+**Editing a single highlight's text from the highlights view**: each highlight entry in the tag view has inline Edit/Save/Cancel (gated on `canEditDocuments()`). Saving POSTs the new plain text to `POST /document/<id>/highlight/<hl_id>/text` (`HighlightText` in `web/api.py`). The handler:
+- splices the new text into the document at the highlight's byte range via `extract.splice_text(html, start, end, new_text)` — the inverse of `extract.extract`: it swaps the snippet's text in place (preserving surrounding markup), returning the full new HTML;
+- then calls `replace_document_contents(..., edited_highlight_id=hl.id)`, so the **other** highlights remap via the normal diff while the **edited** highlight is force-mapped to span exactly its new text. Forcing is needed because text appended at a highlight's boundary would otherwise diff as an insertion *outside* it; since the splice touches only that one region, the document text's net length change equals that highlight's own length change, so the new end is `old_end + (len(new) - len(old))`.
 
 **Tags can be applied two ways** — to a text passage or to a whole document:
 - **Highlight tags**: the normal case. A `Highlight` ↔ `Tag` many-to-many (`highlight_tags` table). A highlight is a byte range in one document, tagged with one or more tags.

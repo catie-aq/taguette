@@ -174,3 +174,19 @@ msgstr ""
 msgid "Showing %(count)s of %(total)s highlights"
 msgstr ""
 
+#: taguette/static/js/taguette.js:2130
+msgid "Edit text"
+msgstr ""
+
+#: taguette/static/js/taguette.js:2137
+msgid "Save"
+msgstr ""
+
+#: taguette/static/js/taguette.js:2146
+msgid "Cancel"
+msgstr ""
+
+#: taguette/static/js/taguette.js:1631
+msgid "Couldn't edit highlight text!"
+msgstr ""
+

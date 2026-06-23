@@ -182,3 +182,19 @@ msgstr ""
 #: taguette/static/js/taguette.js:2207
 msgid "Showing %(count)s of %(total)s highlights"
 msgstr "Affichage de %(count)s marques sur %(total)s"
+
+#: taguette/static/js/taguette.js:2130
+msgid "Edit text"
+msgstr "Modifier le texte"
+
+#: taguette/static/js/taguette.js:2137
+msgid "Save"
+msgstr "Enregistrer"
+
+#: taguette/static/js/taguette.js:2146
+msgid "Cancel"
+msgstr "Annuler"
+
+#: taguette/static/js/taguette.js:1631
+msgid "Couldn't edit highlight text!"
+msgstr "Impossible de modifier le texte de la marque !"
